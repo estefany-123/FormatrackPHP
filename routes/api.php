@@ -1,8 +1,4 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Models\Usuarios;
-
-Route::get('/usuarios', function () {
-    return Usuarios::all();
-});
+require __DIR__."/tables/roles.php";
+require __DIR__."/tables/usuarios.php";
