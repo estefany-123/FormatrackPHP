@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('estado', 50)->nullable();
             $table->json('data')->nullable();
             $table->timestamp('created_at')->useCurrent();
-            $table->foreignId('fk_usuario')->constrained('users', 'id_usuario');
+            $table->foreignId('fk_usuario')->constrained('users', 'id');
         });
     }
 

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('id_usuario_ficha');
             $table->timestamps();
             $table->foreignId('fk_ficha')->constrained('fichas', 'id_ficha');
-            $table->foreignId('fk_usuario')->constrained('users', 'id_usuario');
+            $table->foreignId('fk_usuario')->constrained('users', 'id');
         });
     }
 

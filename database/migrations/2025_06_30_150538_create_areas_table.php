@@ -17,7 +17,7 @@ return new class extends Migration
             $table->boolean('estado')->nullable();
             $table->timestamps();
             $table->foreignId('fk_sede')->constrained('sedes', 'id_sede');
-            $table->foreignId('fk_usuario')->nullable()->constrained('users', 'id_usuario');
+            $table->foreignId('fk_usuario')->nullable()->constrained('users', 'id');
         });
     }
 

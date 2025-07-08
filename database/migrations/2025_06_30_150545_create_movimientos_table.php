@@ -29,7 +29,7 @@ return new class extends Migration
             $table->foreignId('fk_inventario')->constrained('inventarios', 'id_inventario')->onDelete('cascade');
             $table->foreignId('fk_sitio')->constrained('sitios', 'id_sitio')->onDelete('cascade');
             $table->foreignId('fk_tipo_movimiento')->constrained('tipos_movimientos', 'id_tipo')->onDelete('cascade');
-            $table->foreignId('fk_usuario')->constrained('users', 'id_usuario')->onDelete('cascade');
+            $table->foreignId('fk_usuario')->constrained('users', 'id')->onDelete('cascade');
         });
     }
 
