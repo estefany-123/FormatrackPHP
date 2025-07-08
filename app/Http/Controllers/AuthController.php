@@ -53,8 +53,8 @@ class AuthController extends Controller
                 'success' => true,
                 'message' => 'Autenticacion exitosa',
                 'data'    => [
-                    'access_token'  => true,
-                    'token_type'    => $token,
+                    'access_token'  => $token,
+                    'token_type'    => 'bearer',
                     'expired_in'    => JWTAuth::factory()->getTTL() * 60
                 ]
             ], Response::HTTP_OK);
