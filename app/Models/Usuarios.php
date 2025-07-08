@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Usuarios extends Model
 {
-    protected $table = 'usuarios';
+    protected $table = 'users';
 
     public $timestamps = true;
 
@@ -16,5 +16,5 @@ class Usuarios extends Model
 
     protected $keyType = "int";
 
-    protected $fillable = ["documento","nombre","apellido","edad","telefono","correo","estado","cargo","password","perfil","fk_rol"];
+    protected $fillable = ["documento", "nombre", "apellido", "edad", "telefono", "correo", "estado", "cargo", "password", "perfil", "fk_rol"];
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AreasController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ElementoController;
 use App\Http\Controllers\RolesController;
@@ -11,9 +12,10 @@ use Illuminate\Support\Facades\Route;
 Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 Route::apiResource('roles', RolesController::class);
+Route::apiResource('areas', AreasController::class);
 
 //priveate route
-Route::middleware(IsAdmin::class)->group(function(){
+Route::middleware(IsAdmin::class)->group(function () {
     Route::get('user', [AuthController::class, 'getUser'])->name('auth.getUser');
     Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
 
@@ -26,10 +28,10 @@ Route::middleware(IsAdmin::class)->group(function(){
 
 
 //rutas privadas Usuario
-Route::middleware(IsUserAuth::class)->group(function(){
+Route::middleware(IsUserAuth::class)->group(function () {
     Route::get('user', [AuthController::class, 'getUser'])->name('auth.getUser');
     Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
-    
+
     //Acciones que puede realizar
     Route::get('/elementos', [ElementoController::class, 'show'])->name('elemento.show');
 });
