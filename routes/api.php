@@ -8,6 +8,7 @@ use App\Http\Middleware\IsUserAuth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+
 Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 Route::apiResource('roles', RolesController::class);
@@ -18,6 +19,7 @@ Route::middleware(IsAdmin::class)->group(function(){
     Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
 
     //Acciones que puede realizar
+
     Route::post('/elementos', [ElementoController::class, 'store'])->name('elemento.store');
     Route::get('/elementos', [ElementoController::class, 'show'])->name('elemento.show');
     Route::put('/elementos', [ElementoController::class, 'update'])->name('elemento.update');
