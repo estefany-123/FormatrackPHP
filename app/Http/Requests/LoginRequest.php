@@ -22,17 +22,14 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => [
+            'documento' => [
                 'required',
-                'string',
-                'email',
-                'max:255',
+                'integer',
             ],
             'password' => [
                 'required',
                 'string',
-                'min:5'
-
+                'min:8'
             ]
         ];
     }
@@ -40,9 +37,8 @@ class LoginRequest extends FormRequest
     public function messages()
     {
         return [
-            'email.required'      =>      'El email es obligatorio',
-            'email.email'         =>      'El email debe contener un formato valido',
-            'email.max'           =>      'El email no puede exceder los 255 caracteres',
+            'documento.required'      =>      'El documento es obligatorio',
+            'documento.max'           =>      'El documento no puede exceder los 10 caracteres',
             'password.required'    =>     'La contraseña es obligatorio',
             'password.min'         =>     'La contraseña debe tener minimo 6 caracteres',
         ];
