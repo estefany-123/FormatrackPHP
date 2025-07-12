@@ -1,4 +1,5 @@
 <?php
+require __DIR__ ."/tables/usuarios.php";
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ElementoController;
