@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\TipoSitio\StoreTipoSitioRequest;
+use App\Http\Requests\TipoSitio\UpdateTipoSitioRequest;
 use App\Models\TiposSitio;
-use Illuminate\Http\Request;
 
 class TiposSitioController extends Controller
 {
@@ -12,54 +13,62 @@ class TiposSitioController extends Controller
      */
     public function index()
     {
-        //
+        $tipo = TiposSitio::all();
+        return response()->json($tipo,200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreTipoSitioRequest $request)
     {
-        //
+        $tipo = TiposSitio::create($request->validated());
+        return response()->json($tipo,201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(TiposSitio $tiposSitio)
+    public function show($nombre)
     {
-        //
+        $tipo = TiposSitio::where('nombre',$nombre)->first();
+
+        if(!$tipo) {
+            return response()->json(['message' => 'Tipo de sitio no encontrado'],404);
+        }
+
+        return response()->json($tipo,200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(TiposSitio $tiposSitio)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, TiposSitio $tiposSitio)
+    public function update(UpdateTipoSitioRequest $request, $id)
     {
-        //
-    }
+        $tipo = TiposSitio::find($id);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(TiposSitio $tiposSitio)
+        if (!$tipo) {
+            return response()->json(['message' => 'Tipo de sitio no encontrado'], 404);
+        }
+
+        $tipo->update($request->validated());
+
+        return response()->json($tipo, 200);
+    }
+    
+
+    public function updateState($id)
     {
-        //
+        $tipo = TiposSitio::find($id);
+
+        if (!$tipo) {
+            return response()->json(['message' => 'Tipo de sitio no encontrado '], 404);
+        }
+
+        $tipo->update(['estado' => !$tipo->estado]);
+
+        return response()->json(['message' => 'Estado modificado exitosamente'], 200);
     }
 }
