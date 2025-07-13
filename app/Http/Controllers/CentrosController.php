@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCentroRequest;
-use App\Http\Requests\UpdateCentroRequest;
+use App\Http\Requests\Centros\StoreCentroRequest;
+use App\Http\Requests\Centros\UpdateCentroRequest;
 use App\Models\Centros;
 use Illuminate\Http\Request;
 
@@ -11,8 +11,8 @@ class CentrosController extends Controller
 {
     public function index()
     {
-        $centros = Centros::with('municipio')->get();
-        return response()->json($centros, 200);
+        $centros = Centros::all();
+        return response()->json($centros,200);
     }
 
     public function store(StoreCentroRequest $request)
@@ -21,12 +21,12 @@ class CentrosController extends Controller
         return response()->json($centro, 201);
     }
 
-    public function show($id)
+    public function show($nombre)
     {
-        $centro = Centros::with('municipio')->find($id);
+        $centro = Centros::where('nombre',$nombre)->first();
 
-        if (!$centro || $centro->estado === false) {
-            return response()->json(['message' => 'Centro no encontrado o inactivo'], 404);
+        if (!$centro) {
+            return response()->json(['message' => 'Centro no encontrado'], 404);
         }
 
         return response()->json($centro, 200);
@@ -36,8 +36,8 @@ class CentrosController extends Controller
     {
         $centro = Centros::find($id);
 
-        if (!$centro || $centro->estado === false) {
-            return response()->json(['message' => 'Centro no encontrado o inactivo'], 404);
+        if (!$centro) {
+            return response()->json(['message' => 'Centro no encontrado'], 404);
         }
 
         $centro->update($request->validated());
@@ -45,16 +45,16 @@ class CentrosController extends Controller
         return response()->json($centro, 200);
     }
 
-    public function destroy($id)
+    public function updateState($id)
     {
         $centro = Centros::find($id);
 
-        if (!$centro || $centro->estado === false) {
-            return response()->json(['message' => 'Centro no encontrado o ya inactivo'], 404);
+        if (!$centro ) {
+            return response()->json(['message' => 'Centro no encontrado '], 404);
         }
 
-        $centro->update(['estado' => false]);
+        $centro->update(['estado' => !$centro->estado]);
 
-        return response()->json(['message' => 'Centro desactivado correctamente'], 200);
+        return response()->json(['message' => 'Estado modificado exitosamente'], 200);
     }
 }
