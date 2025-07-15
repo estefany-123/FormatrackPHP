@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Municipios\StoreMunicipioRequest;
+use App\Http\Requests\Municipios\UpdateMunicipioRequest;
 use App\Models\Municipios;
-use App\Http\Requests\StoreMunicipioRequest;
-use App\Http\Requests\UpdateMunicipioRequest;
 
 class MunicipiosController extends Controller
 {
@@ -44,16 +44,17 @@ class MunicipiosController extends Controller
         return response()->json($municipio, 200);
     }
 
-    public function destroy($id)
+    public function updateState($id)
     {
         $municipio = Municipios::find($id);
 
-        if (!$municipio || $municipio->estado === false) {
-            return response()->json(['message' => 'Municipio no encontrado o ya inactivo'], 404);
+        if (!$municipio) {
+            return response()->json(['message' => 'Municipio no encontrado'], 404);
         }
 
-        $municipio->update(['estado' => false]);
+        $municipio->update(['estado' => !$municipio->estado]);
 
-        return response()->json(['message' => 'Municipio desactivado correctamente'], 200);
+        return response()->json($municipio, 200);
     }
 }
+
