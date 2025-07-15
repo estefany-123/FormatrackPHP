@@ -24,8 +24,8 @@ class MunicipiosController extends Controller
     {
         $municipio = Municipios::find($id);
 
-        if (!$municipio || $municipio->estado === false) {
-            return response()->json(['message' => 'Municipio no encontrado o inactivo'], 404);
+        if (!$municipio) {
+            return response()->json(['message' => 'Municipio no encontrado'], 404);
         }
 
         return response()->json($municipio, 200);
