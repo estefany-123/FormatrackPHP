@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Caracteristicas;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -14,7 +14,7 @@ class StoreCaracteristicaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => ['nullable', 'string', 'max:70'],
+            'nombre' => [ 'string', 'max:70'],
             'codigo' => ['nullable', 'string', 'max:50'],
         ];
     }
