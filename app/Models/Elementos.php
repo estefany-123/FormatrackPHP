@@ -13,9 +13,17 @@ class Elementos extends Model
     protected $primaryKey = 'id_elemento';
 
     protected $fillable = [
-        'nombre', 'descripcion', 'perecedero', 'no_perecedero', 'estado',
-        'fecha_vencimiento', 'fecha_uso', 'baja', 'imagen_elemento',
-        'fk_categoria', 'fk_unidad_medida', 'fk_caracteristica'
+        'nombre',
+        'descripcion',
+        'perecedero',
+        'no_perecedero',
+        'estado',
+        'fecha_vencimiento',
+        'baja',
+        'imagen_elemento',
+        'fk_categoria',
+        'fk_unidad_medida',
+        'fk_caracteristica'
     ];
 
     protected $casts = [
