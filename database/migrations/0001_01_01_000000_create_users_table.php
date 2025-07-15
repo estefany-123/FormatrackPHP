@@ -22,7 +22,7 @@ return new class extends Migration
             $table->boolean('estado');
             $table->string('cargo');
             $table->string('password');
-            $table->string('perfil');
+            $table->string('perfil')->nullable();
 
             $table->foreignId('fk_rol')->constrained('roles', 'id_rol');
             $table->rememberToken();

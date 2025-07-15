@@ -22,6 +22,13 @@ class AuthController extends Controller
         unset($data['password_confirmation']);
 
         try {
+
+            if($request->hasFile('perfil')){
+                $imagenPath = $request->file('perfil')->store('users','public');
+
+                $data['perfil'] = $imagenPath;
+            }
+            
             $user = User::create($data);
 
             return response()->json([

@@ -1,69 +1,78 @@
 <?php
+
 namespace App\Http\Requests\Usuarios;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateUserRequest extends FormRequest{
-
-    public function authorize(): bool{
+class UpdatePerfilRequest extends FormRequest
+{
+    /**
+     * Determine if the user is authorized to make this request.
+     */
+    public function authorize(): bool
+    {
         return true;
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
     public function rules(): array
     {
         return [
+            
             'nombre' => [
-                'required',
+                'sometimes',
                 'string',
                 'max:255',
                 'regex:/^[\pL\s\-]+$/u'
             ],
             'apellido' => [
+                'sometimes',
                 'string',
                 'max:255',
                 'regex:/^[\pL\s\-]+$/u'
             ],
             'edad' => [
+                'sometimes',
                 'integer'
             ],
             'telefono' => [
+                'sometimes',
                 'integer'
             ],
             'correo' => [
+                'sometimes',
                 'string',
                 'email',
-                'max:255'
-            ],
-            'cargo' => [
-                'string',
-                'max:50',
-                'regex:/^[\pL\s\-]+$/u'
-            ],
+                'max:255',
+                'unique:users,correo',
+            ]
         ];
-
     }
 
-
-    public function messages():array
+    public function messages()
     {
-        return[
-            'nombre.required'       =>      'El nombre es obligatorio',
+        return [
+            
             'nombre.string'         =>      'El nombre debe ser una cadena de texto',
             'nombre.max'            =>      'El nombre no puede exceder los 255 caracteres',
-
+            
             'apellido.string'         =>      'El apellido debe ser una cadena de texto',
             'apellido.max'            =>      'El apellido no puede exceder los 255 caracteres',
 
+            'edad.required'       =>      'La edad es obligatoria',
             'edad.integer'         =>      'La edad debe ser un numero',
 
+            'telefono.required'       =>      'El telefono es obligatorio',
             'telefono.integer'         =>      'El telefono debe ser un integer',
-
+            
             'correo.email'         =>      'El correo debe tener un formato valido',
             'correo.max'           =>      'El correo no puede exceder los 255 caracteres',
+            'correo.unique'        =>      'El correo ya esta registrado en la BD',
 
-            'cargo.string'         =>      'El cargo debe ser una cadena de texto',
-            'cargo.max'            =>      'El cargo no puede exceder los 50 caracteres',
         ];
-        
     }
 }

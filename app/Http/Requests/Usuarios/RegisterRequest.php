@@ -55,7 +55,7 @@ class RegisterRequest extends FormRequest
             ],
              'estado' => [
                 'required',
-                'boolean'
+                'string'
             ],
             'cargo' => [
                 'required',
@@ -73,9 +73,10 @@ class RegisterRequest extends FormRequest
                 'same:password'
             ],
             'perfil' => [
-                'string',
-                'max:255',
-                'regex:/^[\pL\s\-]+$/u'
+                'nullable',
+                'image',
+                'mimes:jpeg,png,jpg,gif',
+                'max:2048'
             ],
             'fk_rol' => ['required', 'exists:roles,id_rol'],
         ];
@@ -107,7 +108,7 @@ class RegisterRequest extends FormRequest
             'correo.unique'        =>      'El correo ya esta registrado en la BD',
 
             'estado.required'       =>      'El estado es obligatorio',
-            'estado.boolean'         =>      'El estado debe ser un boolean',
+            'estado.string'         =>      'El estado debe ser un boolean',
 
             'cargo.required'       =>      'El cargo es obligatorio',
             'cargo.string'         =>      'El cargo debe ser una cadena de texto',
@@ -119,8 +120,8 @@ class RegisterRequest extends FormRequest
             'password_confirmation.required'            =>      'Es necesario confirmar la contraseña',
             'password_confirmation.same'                =>      'La contraseñas no coinciden',
 
-            'perfil.string'         =>      'El perfil debe ser una cadena de texto',
-            'perfil.max'            =>      'El perfil no puede exceder los 255 caracteres',
+            'perfil.image'         =>      'El perfil debe ser una imagen',
+            'perfil.max'            =>      'El perfil no puede exceder los 2048 caracteres',
 
             'fk_rol.required'       =>      'El rol es obligatorio',
             'fk_rol.in'             =>      'El rol debe ser "1" o "2" o "3"',
