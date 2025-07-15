@@ -19,7 +19,6 @@ return new class extends Migration
             $table->boolean('no_perecedero')->nullable();
             $table->boolean('estado')->nullable();
             $table->date('fecha_vencimiento')->nullable();
-            $table->date('fecha_uso')->nullable();
             $table->boolean('baja')->default(false);
             $table->string('imagen_elemento', 255)->nullable();
             $table->timestamps();

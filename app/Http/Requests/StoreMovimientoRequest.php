@@ -28,7 +28,7 @@ class StoreMovimientoRequest extends FormRequest
 
             'fk_inventario' => ['required', 'exists:inventarios,id_inventario'],
             'fk_sitio' => ['required', 'exists:sitios,id_sitio'],
-            'fk_tipo_movimiento' => ['required', 'exists:tipo_movimientos,id_tipo_movimiento'],
+            'fk_tipo_movimiento' => ['required', 'exists:tipo_movimientos,id_tipo'],
             'fk_usuario' => ['required', 'exists:usuarios,id_usuario'],
         ];
     }

@@ -6,7 +6,7 @@ use App\Http\Requests\StoreUnidadMedidaRequest;
 use App\Http\Requests\UpdateUnidadMedidaRequest;
 use App\Models\UnidadesMedida;
 
-class UnidadMedidaController extends Controller
+class UnidadesMedidaController extends Controller
 {
     public function index()
     {
