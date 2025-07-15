@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Rutas;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -14,12 +14,11 @@ class StoreRutaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => ['nullable', 'string', 'max:205'],
-            'descripcion' => ['nullable', 'string', 'max:205'],
+            'nombre' => ['string', 'max:205'],
             'href' => ['required', 'string', 'max:205'],
             'icono' => ['required', 'string', 'max:205'],
             'listed' => ['required', 'boolean'],
-            'estado' => ['nullable', 'boolean'],
+            'estado' => [ 'boolean'],
             'fk_modulo' => ['required', 'exists:modulos,id_modulo'],
         ];
     }
@@ -29,9 +28,6 @@ class StoreRutaRequest extends FormRequest
         return [
             'nombre.string' => 'El nombre debe ser texto',
             'nombre.max' => 'El nombre no puede superar los 205 caracteres',
-
-            'descripcion.string' => 'La descripción debe ser texto',
-            'descripcion.max' => 'La descripción no puede superar los 205 caracteres',
 
             'href.required' => 'El href es obligatorio',
             'href.string' => 'El href debe ser texto',

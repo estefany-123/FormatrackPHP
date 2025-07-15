@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Ruta extends Model
+class Rutas extends Model
 {
     use HasFactory;
 
@@ -14,7 +14,6 @@ class Ruta extends Model
 
     protected $fillable = [
         'nombre',
-        'descripcion',
         'href',
         'icono',
         'listed',
@@ -24,7 +23,7 @@ class Ruta extends Model
 
     public function modulo()
     {
-        return $this->belongsTo(Modulo::class, 'fk_modulo');
+        return $this->belongsTo(Modulos::class, 'fk_modulo');
     }
 
     public function permisos()
