@@ -4,6 +4,7 @@ require __DIR__ ."/tables/centros.php";
 require __DIR__ ."/tables/tipoSitio.php";
 require __DIR__ ."/tables/municipios.php";
 require __DIR__ ."/tables/categorias.php";
+require __DIR__ ."/tables/modulos.php";
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ElementoController;
