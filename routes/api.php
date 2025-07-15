@@ -1,9 +1,17 @@
 <?php
+require __DIR__ . "/tables/sedes.php";
 
 use App\Http\Controllers\AreasController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ElementoController;
+use App\Http\Controllers\FichasController;
+use App\Http\Controllers\PermisosController;
+use App\Http\Controllers\ProgramaFormacionController;
 use App\Http\Controllers\RolesController;
+use App\Http\Controllers\RolPermisoController;
+use App\Http\Controllers\SedesController;
+use App\Http\Controllers\SitiosController;
+use App\Http\Controllers\UsuarioFichaController;
 use App\Http\Middleware\IsAdmin;
 use App\Http\Middleware\IsUserAuth;
 use Illuminate\Http\Request;
@@ -14,6 +22,14 @@ Route::post('/register', [AuthController::class, 'register'])->name('auth.regist
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 Route::apiResource('roles', RolesController::class);
 Route::apiResource('areas', AreasController::class);
+Route::apiResource('sedes', SedesController::class);
+Route::apiResource('sitios', SitiosController::class);
+Route::apiResource('programaF', ProgramaFormacionController::class);
+Route::apiResource('fichas', FichasController::class);
+Route::apiResource('UsuarioFichas', UsuarioFichaController::class);
+Route::apiResource('permisos', PermisosController::class);
+Route::apiResource('rol_permisos', RolPermisoController::class);
+Route::apiResource('elementos', ElementoController::class);
 
 //priveate route
 Route::middleware(IsAdmin::class)->group(function () {
@@ -22,10 +38,7 @@ Route::middleware(IsAdmin::class)->group(function () {
 
     //Acciones que puede realizar
 
-    Route::post('/elementos', [ElementoController::class, 'store'])->name('elemento.store');
-    Route::get('/elementos', [ElementoController::class, 'show'])->name('elemento.show');
-    Route::put('/elementos', [ElementoController::class, 'update'])->name('elemento.update');
-    Route::delete('/elementos', [ElementoController::class, 'destroy'])->name('elemento.destroy');
+
 });
 
 
@@ -35,5 +48,4 @@ Route::middleware(IsUserAuth::class)->group(function () {
     Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
 
     //Acciones que puede realizar
-    Route::get('/elementos', [ElementoController::class, 'show'])->name('elemento.show');
 });

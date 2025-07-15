@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUsuarioFichaRequest;
+use App\Http\Requests\UpdateUsuarioFichaRequest;
 use App\Models\UsuarioFicha;
 use Illuminate\Http\Request;
 
@@ -12,54 +14,54 @@ class UsuarioFichaController extends Controller
      */
     public function index()
     {
-        //
-    }
+        // Obtiene todos los registros de la tabla "areas"
+        $UsuarioFichas = UsuarioFicha::all();
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        // Retorna los datos en formato JSON con código HTTP 200 (OK)
+        return response()->json($UsuarioFichas, 200);
     }
-
     /**
+
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreUsuarioFichaRequest $request)
     {
-        //
+        // Crea una nueva área usando solo los datos validados por StoreAreaRequest
+        $UsuarioFichas = UsuarioFicha::create($request->validated());
+
+        // Retorna la nueva área creada y el código HTTP 201 (creado)
+        return response()->json($UsuarioFichas, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(UsuarioFicha $usuarioFicha)
+    public function show($id)
     {
-        //
+        // Busca el área por ID (sin relaciones si no están definidas)
+        $UsuarioFichas = UsuarioFicha::find($id);
+
+        // Si no existe o está inactiva, retorna error 404
+        if (!$UsuarioFichas || $UsuarioFichas->estado === false) {
+        }
+
+        // Retorna el área encontrada en formato JSON
+        return response()->json($UsuarioFichas, 200);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(UsuarioFicha $usuarioFicha)
+    public function update(UpdateUsuarioFichaRequest $request, $id)
     {
-        //
-    }
+        $UsuarioFichas = UsuarioFicha::find($id);
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, UsuarioFicha $usuarioFicha)
-    {
-        //
-    }
+        if (!$UsuarioFichas || $UsuarioFichas->estado === false) {
+            return response()->json(['message' => 'UsuarioFichas no encontrada o inactiva'], 404);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(UsuarioFicha $usuarioFicha)
-    {
-        //
+        $UsuarioFichas->update($request->validated());
+
+        return response()->json($UsuarioFichas, 200);
     }
 }
