@@ -18,7 +18,7 @@ class StoreProgramaRequest extends FormRequest
                 'required',
                 'string',
                 'max:100',
-                'unique:programas,nombre'
+                'unique:programa_formacion,nombre'
             ],
             'estado' => [
                 'required',

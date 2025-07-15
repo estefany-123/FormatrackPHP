@@ -14,11 +14,11 @@ class StoreFichaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'numero' => [
+            'codigo_ficha' => [
                 'required',
                 'string',
                 'max:20',
-                'unique:fichas,numero'
+                'unique:fichas,codigo_ficha'
             ],
             'estado' => [
                 'required',
@@ -26,7 +26,7 @@ class StoreFichaRequest extends FormRequest
             ],
             'fk_programa' => [
                 'required',
-                'exists:programas,id_programa'
+                'exists:programa_formacion,id_programa'
             ],
         ];
     }
@@ -34,10 +34,10 @@ class StoreFichaRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'numero.required' => 'El número de ficha es obligatorio',
-            'numero.string' => 'El número debe ser una cadena de texto',
-            'numero.max' => 'El número no debe exceder los 20 caracteres',
-            'numero.unique' => 'Este número de ficha ya existe en la base de datos',
+            'codigo_ficha.required' => 'El codigo_ficha de ficha es obligatorio',
+            'codigo_ficha.string' => 'El codigo_ficha debe ser una cadena de texto',
+            'codigo_ficha.max' => 'El codigo_ficha no debe exceder los 20 caracteres',
+            'codigo_ficha.unique' => 'Este codigo_ficha de ficha ya existe en la base de datos',
 
             'estado.required' => 'El estado es obligatorio',
             'estado.boolean' => 'El estado debe ser verdadero o falso',

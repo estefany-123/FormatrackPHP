@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreCaracteristicaRequest extends FormRequest
+class UpdateCaracteristicaRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -15,7 +15,7 @@ class StoreCaracteristicaRequest extends FormRequest
     {
         return [
             'nombre' => ['nullable', 'string', 'max:70'],
-            'codigo' => ['nullable', 'string', 'max:50'],
+            'simbolo' => ['nullable', 'string', 'max:50'],
         ];
     }
 
@@ -25,8 +25,8 @@ class StoreCaracteristicaRequest extends FormRequest
             'nombre.string' => 'El nombre debe ser una cadena de texto',
             'nombre.max' => 'El nombre no debe superar los 70 caracteres',
 
-            'codigo.string' => 'El código debe ser una cadena de texto',
-            'codigo.max' => 'El código no debe superar los 50 caracteres',
+            'simbolo.string' => 'El simbolo debe ser una cadena de texto',
+            'simbolo.max' => 'El simbolo no debe superar los 50 caracteres',
         ];
     }
 }

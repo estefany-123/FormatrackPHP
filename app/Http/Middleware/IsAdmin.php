@@ -17,7 +17,7 @@ class IsAdmin
     {
          $user = auth('api')->user();
 
-         if($user && $user->role === 'admin'){
+         if($user && $user->rol->nombre === 'admin'){
             return $next($request);
          }else{
             return response()->json([

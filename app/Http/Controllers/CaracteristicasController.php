@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCaracteristicaRequest;
+use App\Http\Requests\UpdateCaracteristicaRequest;
 use App\Models\Caracteristicas;
 use Illuminate\Http\Request;
 
@@ -12,7 +14,8 @@ class CaracteristicasController extends Controller
      */
     public function index()
     {
-        //
+        $caracteristicas = Caracteristicas::all();
+        return response()->json($caracteristicas, 200);
     }
 
     /**
@@ -26,17 +29,24 @@ class CaracteristicasController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCaracteristicaRequest $request)
     {
-        //
+        $caracteristica = Caracteristicas::create($request->validated());
+        return  response()->json($caracteristica, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Caracteristicas $caracteristicas)
+    public function show($id)
     {
-        //
+        $caracteristica = Caracteristicas::find($id);
+
+        if(!$caracteristica){
+            return response()->json(['message' => 'No existe la caracteristica con ese id'], 404);
+        }
+
+        return response()->json($caracteristica, 200);
     }
 
     /**
@@ -50,16 +60,17 @@ class CaracteristicasController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Caracteristicas $caracteristicas)
+    public function update(UpdateCaracteristicaRequest $request, $id )
     {
-        //
+        $caracteristica = Caracteristicas::find($id);
+
+        if(!$caracteristica){
+            return response()->json(['message' => 'No existe la caracteristica con ese id'], 404);
+        }
+
+        $caracteristica->update($request->validated());
+
+        return response()->json($caracteristica, 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Caracteristicas $caracteristicas)
-    {
-        //
-    }
 }

@@ -41,7 +41,7 @@ class LoginRequest extends FormRequest
     {
         return [
             'email.required'      =>      'El email es obligatorio',
-            'email.email'         =>      'El email debe tener el formato @',
+            'email.email'         =>      'El email debe contener un formato valido',
             'email.max'           =>      'El email no puede exceder los 255 caracteres',
             'password.required'    =>     'La contraseña es obligatorio',
             'password.min'         =>     'La contraseña debe tener minimo 6 caracteres',

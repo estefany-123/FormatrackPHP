@@ -17,7 +17,7 @@ class StoreAreaRequest extends FormRequest
             'nombre' => ['nullable', 'string', 'max:70'],
             'estado' => ['nullable', 'boolean'],
             'fk_sede' => ['required', 'exists:sedes,id_sede'],
-            'fk_usuario' => ['nullable', 'exists:usuarios,id_usuario'],
+            'fk_usuario' => ['nullable', 'exists:users,id'],
         ];
     }
 

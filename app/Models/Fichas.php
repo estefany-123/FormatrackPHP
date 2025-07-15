@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Foundation\Auth\User;
 
 class Fichas extends Model
 {
@@ -13,7 +14,7 @@ use HasFactory;
     protected $primaryKey = 'id_ficha';
 
     protected $fillable = [
-        'numero',
+        'codigo_ficha',
         'estado',
         'fk_programa'
     ];

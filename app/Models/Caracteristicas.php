@@ -12,7 +12,7 @@ class Caracteristicas extends Model
     protected $table = 'caracteristicas';
     protected $primaryKey = 'id_caracteristica';
 
-    protected $fillable = ['nombre', 'codigo'];
+    protected $fillable = ['nombre', 'simbolo'];
 
     public function elementos()
     {

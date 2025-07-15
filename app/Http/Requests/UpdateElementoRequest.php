@@ -27,7 +27,6 @@ class UpdateElementoRequest extends FormRequest
                 'sometimes',
                 'string',
                 'max:50',
-                Rule::unique('elementos', 'nombre')->ignore($this->route('elemento')->id),
                 'alpha_space',
             ],
 
