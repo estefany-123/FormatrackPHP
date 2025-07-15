@@ -3,7 +3,6 @@ require __DIR__ . "/tables/sedes.php";
 
 use App\Http\Controllers\AreasController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\CaracteristicasController;
 use App\Http\Controllers\CodigoInventarioController;
 use App\Http\Controllers\ElementoController;
 use App\Http\Controllers\FichasController;
@@ -44,7 +43,6 @@ Route::middleware(IsAdmin::class)->group(function () {
     Route::apiResource('rol_permisos', RolPermisoController::class);
     Route::apiResource('unidades', UnidadesMedidaController::class);
     Route::apiResource('tipos', TiposMovimientoController::class);
-    Route::apiResource('caracteristicas', CaracteristicasController::class);
     Route::apiResource('codigos', CodigoInventarioController::class);
     Route::apiResource('elementos', ElementoController::class);
     Route::apiResource('inventarios', InventarioController::class);
