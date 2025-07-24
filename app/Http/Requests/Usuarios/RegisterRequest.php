@@ -55,7 +55,7 @@ class RegisterRequest extends FormRequest
             ],
              'estado' => [
                 'required',
-                'string'
+                'boolean'
             ],
             'cargo' => [
                 'required',
@@ -108,7 +108,7 @@ class RegisterRequest extends FormRequest
             'correo.unique'        =>      'El correo ya esta registrado en la BD',
 
             'estado.required'       =>      'El estado es obligatorio',
-            'estado.string'         =>      'El estado debe ser un boolean',
+            'estado.boolean'         =>      'El estado debe ser un boolean',
 
             'cargo.required'       =>      'El cargo es obligatorio',
             'cargo.string'         =>      'El cargo debe ser una cadena de texto',
