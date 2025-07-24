@@ -55,6 +55,7 @@ class UsersController extends Controller
         return response()->json($response, 200);
     }
 
+
     public function updateperfil(UpdatePerfilRequest $request, $id)
     {
 
@@ -151,10 +152,10 @@ class UsersController extends Controller
         }
     }
 
-    public function show($nombre)
+    public function show($id)
     { //busca uno
 
-        $user = User::where('nombre', $nombre)->first();
+        $user = User::find($id);
 
         if (!$user) {
             return response()->json(['message' => 'Usuario no encontrado'], 404);
