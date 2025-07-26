@@ -60,8 +60,7 @@ class RegisterRequest extends FormRequest
             'cargo' => [
                 'required',
                 'string',
-                'max:50',
-                'regex:/^[\pL\s\-]+$/u'
+                'max:50'
             ],
             'password' => [
                 'required',

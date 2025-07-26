@@ -13,8 +13,11 @@ use App\Http\Controllers\ElementoController;
 use App\Http\Controllers\RolesController;
 use App\Http\Middleware\IsAdmin;
 use App\Http\Middleware\IsUserAuth;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\EmailController;
+
+Route::post('/forgot-password',[EmailController::class,'sendResetLink']);
+Route::post('/reset-password',[EmailController::class,'reset']);
 
 
 Route::post('/usuarios', [AuthController::class, 'register'])->name('auth.register');
