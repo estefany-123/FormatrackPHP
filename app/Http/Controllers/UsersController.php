@@ -12,6 +12,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\Response;
+use App\Models\Usuario;
+use Exception;
+use Illuminate\Support\Facades\Hash;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 
 
@@ -71,86 +75,7 @@ class UsersController extends Controller
     }
 
 
-    public function up(UpdateUserImageRequest $request, $id)
-    {
-
-        try {
-
-            $usuario = User::find($id);
-
-            if ($request->hasFile('perfil')) {
-                $imagenPath = $request->file('perfil')->store('users', 'public');
-
-                $usuario['perfil'] = $imagenPath;
-
-                $usuario->save($usuario);
-            }
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Usuario creado exitosamente',
-                'data'    => $usuario,
-            ], Response::HTTP_OK);
-        } catch (\Throwable $e) {
-            Log::error('Error al crear el usuario' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-
-
-
-
-        // if (!$usuario) {
-        //     return response()->json(['message' => 'Usuario no encontrado']);
-        // }
-
-        // if ($usuario->perfil) {
-        //     Storage::disk('public')->delete($usuario->image);
-        // }
-        // $newimage = $request->file('perfil')->store('users', 'public');
-
-        // $usuario->update([
-        //     'perfil' => $newimage
-        // ]);
-
-        // return response()->json([
-        //     'message' => 'Imagen actualizada correctamente',
-        //     'image_path' => $newimage
-        // ], 200);
-
-
-    }
-
-
-    public function updateImage(UpdateUserImageRequest $request, User $user): JsonResponse
-    {
-        try {
-
-            if ($user->perfil) {
-                Storage::disk('public')->delete($user->perfil);
-            }
-
-
-            $imagePath = $request->file('perfil')->store('users', 'public');
-
-            $user->update(['perfil' => $imagePath]);
-            return response()->json([
-                'success' => true,
-                'message' => 'Imagen actualizada exitosamente',
-                'data' => [
-                    'perfil' => Storage::url($imagePath),
-                ],
-            ], Response::HTTP_OK);
-        } catch (\Throwable $e) {
-            Log::error('Error al actualizar la imagen del usuario: ' . $e->getMessage());
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage(),
-            ], Response::HTTP_INTERNAL_SERVER_ERROR);
-        }
-    }
+   
 
     public function show($id)
     { //busca uno
@@ -188,5 +113,87 @@ class UsersController extends Controller
         $user->update(['estado' => !$user->estado]);
 
         return response()->json(['message' => 'Estado cambiado exitosamente'], 200);
+    }
+
+
+
+
+    public function massiveUpload(Request $request)
+    {
+
+        $request->validate([
+            'excel' => 'required|file|mimes:xlsx,xls',
+        ]);
+
+        try {
+            $file = $request->file('excel');
+            $spreadsheet = IOFactory::load($file->getPathname());
+            $sheet = $spreadsheet->getActiveSheet();
+            $data = $sheet->toArray(null, true, true, true);
+
+            $newUsersList = [];
+            $errors = [];
+
+  
+            foreach (array_slice($data, 1) as $index => $row) {
+                $documento = trim($row['A'] ?? '');
+                $nombre = trim($row['B'] ?? '');
+                $apellido = trim($row['C'] ?? '');
+
+ 
+                if (empty($documento) && empty($nombre) && empty($apellido)) {
+                    continue;
+                }
+
+            
+                if (empty($documento) || empty($nombre) || empty($apellido)) {
+                    $errors["missing_data"] = "Algunos usuarios tienen datos incompletos";
+                    continue;
+                }
+
+    
+                $documento = intval($documento);
+
+               
+                if (User::where('documento', $documento)->exists()) {
+                    $errors["duplicated"] = "Algunos de los documentos ya existen";
+                    continue;
+                }
+
+            
+                $userPass = substr($nombre, 0, 1) . substr($apellido, 0, 1) . $documento;
+                $passwordHash = Hash::make($userPass);
+
+               
+                $createdUser = User::create([
+                    'documento' => $documento,
+                    'nombre' => $nombre,
+                    'apellido' => $apellido,
+                    'password' => $passwordHash,
+                    'fk_rol' => 2,
+                    'estado' => true,
+                ]);
+
+                $newUsersList[] = $createdUser;
+            }
+
+            if (!empty($errors)) {
+                return response()->json([
+                    'msg' => $errors,
+                ], Response::HTTP_BAD_REQUEST);
+            }
+
+            return response()->json([
+                'msg' => 'Usuarios registrados exitosamente',
+                'newUsers' => $newUsersList,
+            ], Response::HTTP_OK);
+
+        } catch (\Throwable $e) {
+            Log::error('Error en carga masiva: ' . $e->getMessage() . ' | Datos: ' . json_encode($row ?? []));
+            return response()->json([
+                'msg' => 'Error al procesar el archivo Excel',
+                'error' => $e->getMessage(),
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
     }
 }

@@ -15,5 +15,4 @@ Route::put('/usuarios/update/{id}',[UsersController::class,'update']);
 
 Route::patch('/usuarios/estado/{id}',[UsersController::class,'updateState']);
 
-Route::patch('/usuarios/updatefoto/{id}', [UsersController::class, 'up']);//no sirve aun
-
+Route::post('/usuarios/massive',[UsersController::class,'massiveUpload']);

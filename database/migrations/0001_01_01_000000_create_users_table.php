@@ -16,11 +16,11 @@ return new class extends Migration
             $table->integer('documento');
             $table->string('nombre');
             $table->string('apellido');
-            $table->integer('edad');
-            $table->string('telefono');
-            $table->string('correo')->unique();
+            $table->integer('edad')->nullable();
+            $table->string('telefono')->nullable();
+            $table->string('correo')->unique()->nullable();
             $table->boolean('estado');
-            $table->string('cargo');
+            $table->string('cargo')->nullable();
             $table->string('password');
             $table->string('perfil')->nullable();
 
