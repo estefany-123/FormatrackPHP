@@ -39,6 +39,8 @@ class UpdateUserRequest extends FormRequest{
                 'max:50',
                 'regex:/^[\pL\s\-]+$/u'
             ],
+            'fk_rol' => [ 'exists:roles,id_rol'],
+
         ];
 
     }
@@ -63,6 +65,8 @@ class UpdateUserRequest extends FormRequest{
 
             'cargo.string'         =>      'El cargo debe ser una cadena de texto',
             'cargo.max'            =>      'El cargo no puede exceder los 50 caracteres',
+
+            'fk_rol.in'             =>      'El rol debe existir en la base de datos',
         ];
         
     }

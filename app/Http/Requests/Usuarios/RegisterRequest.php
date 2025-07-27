@@ -123,7 +123,7 @@ class RegisterRequest extends FormRequest
             'perfil.max'            =>      'El perfil no puede exceder los 2048 caracteres',
 
             'fk_rol.required'       =>      'El rol es obligatorio',
-            'fk_rol.in'             =>      'El rol debe ser "1" o "2" o "3"',
+            'fk_rol.in'             =>      'El rol debe existir en la base de datos',
 
         ];
     }
