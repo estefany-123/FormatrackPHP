@@ -1,5 +1,12 @@
 <?php
-require __DIR__ . "/tables/sedes.php";
+require __DIR__ ."/tables/usuarios.php";
+require __DIR__ ."/tables/centros.php";
+require __DIR__ ."/tables/tipoSitio.php";
+require __DIR__ ."/tables/municipios.php";
+require __DIR__ ."/tables/categorias.php";
+require __DIR__ ."/tables/modulos.php";
+require __DIR__ ."/tables/rutas.php";
+require __DIR__ ."/tables/caracteristicas.php";
 
 use App\Http\Controllers\AreasController;
 use App\Http\Controllers\AuthController;
@@ -18,7 +25,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
-Route::post('/register', [AuthController::class, 'register'])->name('auth.register');
+Route::post('/usuarios', [AuthController::class, 'register'])->name('auth.register');
 Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 Route::apiResource('roles', RolesController::class);
 Route::apiResource('areas', AreasController::class);

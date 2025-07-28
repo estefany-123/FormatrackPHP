@@ -1,19 +1,19 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Models\Usuarios;
-use Illuminate\Support\Facades\DB;
-use Mockery\Undefined;
+use App\Http\Controllers\UsersController;
 
-Route::get('/usuarios', function () {
+Route::get('/usuarios',[UsersController::class,'index']);
 
-    $usuarios = Usuarios::all()->toArray();
+Route::get('/usuarios/{nombre}',[UsersController::class,'show']);
 
-    $usuarios = array_map(function ($usuario) {
-        $usuario["idUsuario"] = $usuario["id_usuario"];
-        unset($usuario["id_usuario"]);
-        return $usuario;
-    }, $usuarios);
+Route::get('/usuarios/perfil/{id}',[UsersController::class,'perfil']);
 
-    return $usuarios;
-});
+Route::patch('/usuarios/perfil/{id}',[UsersController::class,'updateperfil']);
+
+Route::put('/usuarios/update/{id}',[UsersController::class,'update']);
+
+Route::patch('/usuarios/estado/{id}',[UsersController::class,'updateState']);
+
+Route::patch('/usuarios/updatefoto/{id}', [UsersController::class, 'up']);//no sirve aun
+

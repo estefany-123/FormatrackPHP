@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Centros;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreTipoSitioRequest extends FormRequest
+class UpdateCentroRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -14,8 +14,7 @@ class StoreTipoSitioRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => ['required', 'string', 'max:100'],
-            'estado' => ['nullable', 'boolean'],
+            'nombre' => ['required', 'string', 'max:70'],
         ];
     }
 
@@ -24,9 +23,7 @@ class StoreTipoSitioRequest extends FormRequest
         return [
             'nombre.required' => 'El nombre es obligatorio',
             'nombre.string' => 'El nombre debe ser texto',
-            'nombre.max' => 'El nombre no puede superar los 100 caracteres',
-
-            'estado.boolean' => 'El estado debe ser verdadero o falso',
+            'nombre.max' => 'No puede superar los 70 caracteres',
         ];
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\LoginRequest;
-use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\Usuarios\LoginRequest;
+use App\Http\Requests\Usuarios\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
@@ -22,6 +22,13 @@ class AuthController extends Controller
         unset($data['password_confirmation']);
 
         try {
+
+            if($request->hasFile('perfil')){
+                $imagenPath = $request->file('perfil')->store('users','public');
+
+                $data['perfil'] = $imagenPath;
+            }
+            
             $user = User::create($data);
 
             return response()->json([

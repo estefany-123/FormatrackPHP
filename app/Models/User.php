@@ -17,8 +17,7 @@ class User extends Authenticatable implements JWTSubject
 
     protected $keyType = "int";
 
-    protected $fillable = ["name", "email", "password", "fk_rol"];
-
+    protected $fillable = ["documento", "nombre", "apellido", "edad", "telefono", "correo", "estado", "cargo", "password", "perfil", "fk_rol"];
 
     public function getJWTIdentifier()
     {
@@ -30,5 +29,8 @@ class User extends Authenticatable implements JWTSubject
         return [];
     }
 
-
+    public function rol()
+    {
+        return $this->belongsTo(Roles::class, 'fk_rol', 'id_rol');
+    }
 }
