@@ -16,11 +16,11 @@ return new class extends Migration
             $table->integer('documento');
             $table->string('nombre');
             $table->string('apellido');
-            $table->integer('edad');
-            $table->string('telefono');
-            $table->string('correo')->unique();
+            $table->integer('edad')->nullable();
+            $table->string('telefono')->nullable();
+            $table->string('correo')->unique()->nullable();
             $table->boolean('estado');
-            $table->string('cargo');
+            $table->string('cargo')->nullable();
             $table->string('password');
             $table->string('perfil')->nullable();
 
@@ -29,11 +29,7 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('password_reset_tokens', function (Blueprint $table) {
-            $table->string('correo')->primary();
-            $table->string('token');
-            $table->timestamp('created_at')->nullable();
-        });
+       
 
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
@@ -51,7 +47,6 @@ return new class extends Migration
     public function down(): void
     {
         Schema::dropIfExists('users');
-        Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
     }
 };
