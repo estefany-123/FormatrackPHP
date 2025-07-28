@@ -14,7 +14,7 @@ class StoreTipoMovimientoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => ['required', 'string', 'max:100', 'unique:tipo_movimientos,nombre'],
+            'nombre' => ['required', 'string', 'max:100', 'unique:tipos_movimientos,nombre'],
             'estado' => ['nullable', 'boolean'],
         ];
     }

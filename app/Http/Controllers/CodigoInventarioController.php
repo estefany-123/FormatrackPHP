@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreCodigoInventarioRequest;
+use App\Http\Requests\UpdateCodigoInventarioRequest;
 use App\Models\CodigoInventario;
 use Illuminate\Http\Request;
 
@@ -12,7 +14,8 @@ class CodigoInventarioController extends Controller
      */
     public function index()
     {
-        //
+        $codigo = CodigoInventario::all();
+        return response()->json($codigo, 200);
     }
 
     /**
@@ -26,17 +29,24 @@ class CodigoInventarioController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(StoreCodigoInventarioRequest $request)
     {
-        //
+        $codigo = CodigoInventario::create($request->validated());
+        return response()->json($codigo, 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(CodigoInventario $codigoInventario)
+    public function show($id)
     {
-        //
+        $codigo = CodigoInventario::find($id);
+
+        if(!$codigo){
+            return response()->json(['message'=>'No se encuentra registrado el codigo de ese elemento en el inventario'], 404);
+        }
+
+        return response()->json($codigo, 200);
     }
 
     /**
@@ -50,16 +60,17 @@ class CodigoInventarioController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, CodigoInventario $codigoInventario)
+    public function update(UpdateCodigoInventarioRequest $request, $id)
     {
-        //
-    }
+        $codigos = CodigoInventario::find($id);
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(CodigoInventario $codigoInventario)
-    {
-        //
+        if(!$codigos){
+            return response()->json(['message' => 'No existe la codigos con ese id']);
+        }
+
+        $codigos->update($request->validated());
+
+        return response()->json($codigos, 200);
+    
     }
 }

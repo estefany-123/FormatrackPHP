@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('caracteristicas', function (Blueprint $table) {
             $table->id('id_caracteristica');
             $table->string('nombre', 70)->nullable();
-            $table->string('codigo', 50)->nullable();
+            $table->string('simbolo', 50)->nullable();
             $table->timestamps();
         });
     }
