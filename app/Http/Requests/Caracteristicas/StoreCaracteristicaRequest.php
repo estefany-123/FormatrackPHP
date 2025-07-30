@@ -14,19 +14,19 @@ class StoreCaracteristicaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => [ 'string', 'max:70'],
-            'codigo' => ['nullable', 'string', 'max:50'],
+            'nombre' => ['nullable', 'string', 'max:70'],
+            'simbolo' => ['nullable', 'string', 'max:50'],
         ];
     }
 
     public function messages(): array
     {
         return [
-            'nombre.string' => 'El nombre debe ser una cadena de texto',
-            'nombre.max' => 'El nombre no debe superar los 70 caracteres',
+            'nombre.string' => 'El nombre debe ser una cadena de texto.',
+            'nombre.max' => 'El nombre no debe superar los 70 caracteres.',
 
-            'codigo.string' => 'El código debe ser una cadena de texto',
-            'codigo.max' => 'El código no debe superar los 50 caracteres',
+            'simbolo.string' => 'El símbolo debe ser una cadena de texto.',
+            'simbolo.max' => 'El símbolo no debe superar los 50 caracteres.',
         ];
     }
 }
