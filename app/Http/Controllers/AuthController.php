@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
@@ -61,6 +62,7 @@ class AuthController extends Controller
                 'message' => 'Autenticacion exitosa',
                 'data'    => [
                     'access_token'  => $token,
+                    'user'=> Auth::user(),
                     'token_type'    => 'bearer',
                     'expired_in'    => JWTAuth::factory()->getTTL() * 60
                 ]
