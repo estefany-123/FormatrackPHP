@@ -24,6 +24,7 @@ return [
     | since RSA and ECDSA use a private/public key combo (See below).
     |
     */
+    'user' => App\Models\User::class,
 
     'secret' => env('JWT_SECRET'),
 
