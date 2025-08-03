@@ -12,8 +12,7 @@ class UpdateTipoSitioRequest extends FormRequest {
 
     public function rules(): array {
         return [
-            'nombre'  => ['required','string','max:70'],
-            'estado'  =>['required','boolean']
+            'nombre'  => ['required','string','max:70']
         ];
     }
 
@@ -23,8 +22,6 @@ class UpdateTipoSitioRequest extends FormRequest {
             'nombre.string' => 'El nombre debe ser texto',
             'nombre.max' => 'No puede superar los 70 caracteres',
 
-            'estado.required'  =>  'El estado es requerido',
-            'estado.boolean'   =>  'El estado debe ser un boolean'
         ];
     }
 }
