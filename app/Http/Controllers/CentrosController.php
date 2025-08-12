@@ -21,9 +21,9 @@ class CentrosController extends Controller
         return response()->json($centro, 201);
     }
 
-    public function show($nombre)
+    public function show($id)
     {
-        $centro = Centros::where('nombre',$nombre)->first();
+        $centro = Centros::find($id);
 
         if (!$centro) {
             return response()->json(['message' => 'Centro no encontrado'], 404);

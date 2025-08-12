@@ -19,6 +19,11 @@ use App\Http\Controllers\AuthController;
 use App\Http\Middleware\IsAdmin;
 use App\Http\Middleware\IsUserAuth;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\EmailController;
+
+Route::post('/forgot-password',[EmailController::class,'sendResetLink']);
+Route::post('/reset-password',[EmailController::class,'reset']);
+    Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
 
 
 Route::post('/usuarios', [AuthController::class, 'register'])->name('auth.register');
@@ -30,6 +35,14 @@ Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 Route::middleware(IsAdmin::class)->group(function () {
     Route::get('user', [AuthController::class, 'getUser'])->name('auth.getUser');
     Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
+
+
+    //Acciones que puede realizar
+
+    Route::post('/elementos', [ElementoController::class, 'store'])->name('elemento.store');
+    Route::get('/elementos', [ElementoController::class, 'show'])->name('elemento.show');
+    Route::put('/elementos', [ElementoController::class, 'update'])->name('elemento.update');
+    Route::delete('/elementos', [ElementoController::class, 'destroy'])->name('elemento.destroy');
 });
 
 
@@ -38,5 +51,6 @@ Route::middleware(IsUserAuth::class)->group(function () {
     Route::get('user', [AuthController::class, 'getUser'])->name('auth.getUser');
     Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
 
+    
     //Acciones que puede realizar
 });

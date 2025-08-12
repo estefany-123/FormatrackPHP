@@ -48,7 +48,11 @@ class UpdatePerfilRequest extends FormRequest
                 'string',
                 'email',
                 'max:255',
-                'unique:users,correo',
+                'unique:users,correo,' . $this->user()->id,
+            ],
+            'password' => [
+                'sometimes',
+                'string'
             ]
         ];
     }
@@ -71,7 +75,8 @@ class UpdatePerfilRequest extends FormRequest
             
             'correo.email'         =>      'El correo debe tener un formato valido',
             'correo.max'           =>      'El correo no puede exceder los 255 caracteres',
-            'correo.unique'        =>      'El correo ya esta registrado en la BD',
+
+            'password.string'     =>     'la contraseña debe ser una string',
 
         ];
     }
