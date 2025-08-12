@@ -14,7 +14,8 @@ class UpdateCaracteristicaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => ['string', 'max:70']
+            'nombre' => ['string', 'max:70'],
+            'simbolo' => ['nullable', 'string', 'max:50'],
         ];
     }
 
@@ -22,7 +23,10 @@ class UpdateCaracteristicaRequest extends FormRequest
     {
         return [
             'nombre.string' => 'El nombre debe ser una cadena de texto',
-            'nombre.max' => 'El nombre no debe superar los 70 caracteres'
+            'nombre.max' => 'El nombre no debe superar los 70 caracteres',
+
+            'simbolo.string' => 'El símbolo debe ser una cadena de texto.',
+            'simbolo.max' => 'El símbolo no debe superar los 50 caracteres.',
         ];
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Inventario;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -20,7 +20,7 @@ class UpdateInventarioRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'stock' => 'required|integer|min:0',
+            'stock' => 'required|integer|min:1',
         ];
     }
 
@@ -32,7 +32,7 @@ class UpdateInventarioRequest extends FormRequest
         return [
             'stock.required' => 'El campo stock es obligatorio.',
             'stock.integer' => 'El stock debe ser un número entero.',
-            'stock.min' => 'El stock no puede ser negativo.',
+            'stock.min' => 'El stock debe ser mayor a 1.',
         ];
     }
 }

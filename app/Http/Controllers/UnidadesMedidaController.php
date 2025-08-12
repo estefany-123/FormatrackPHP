@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreUnidadMedidaRequest;
-use App\Http\Requests\UpdateUnidadMedidaRequest;
+use App\Http\Requests\Unidades\StoreUnidadMedidaRequest;
+use App\Http\Requests\Unidades\UpdateUnidadMedidaRequest;
 use App\Models\UnidadesMedida;
 
 class UnidadesMedidaController extends Controller
@@ -49,7 +49,8 @@ class UnidadesMedidaController extends Controller
         $unidad = UnidadesMedida::find($id);
 
         if (!$unidad || $unidad->estado === false) {
-            return response()->json(['message' => 'Unidad no encontrada o ya inactiva'], 404);
+            $unidad->update(['estado' => true]);
+            return response()->json(['message' => 'Unidad Activada con Exito'], 200);
         }
 
         $unidad->update(['estado' => false]);

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Elementos;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -26,14 +26,14 @@ class StoreElementoRequest extends FormRequest
                 'max:1000',
                 'min:5'
             ],
-            'perecedero' => ['required', 'boolean'],
-            'no_perecedero' => ['required', 'boolean'],
-            'estado' => ['required', 'boolean'],
-            'baja' => ['required', 'boolean'],
-            'imagen_elemento' => ['nullable', 'string'],
+            'perecedero' => [ 'boolean'],
+            'no_perecedero' => [ 'boolean'],
+            'estado' => [ 'boolean'],
+            'baja' => [ 'boolean'],
+            'imagen_elemento' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'fk_categoria' => ['required', 'integer', 'exists:categorias,id_categoria'],
             'fk_unidad_medida' => ['required', 'integer', 'exists:unidades_medida,id_unidad'],
-            'fk_caracteristica' => ['required', 'integer', 'exists:caracteristicas,id_caracteristica'],
+            'fk_caracteristica' => ['nullable', 'integer', 'exists:caracteristicas,id_caracteristica'],
         ];
     }
 
@@ -72,7 +72,6 @@ class StoreElementoRequest extends FormRequest
             'fk_unidad_medida.integer' => 'La unidad de medida debe ser un número entero',
             'fk_unidad_medida.exists' => 'La unidad de medida seleccionada no existe',
 
-            'fk_caracteristica.required' => 'La característica es obligatoria',
             'fk_caracteristica.integer' => 'La característica debe ser un número entero',
             'fk_caracteristica.exists' => 'La característica seleccionada no existe',
         ];

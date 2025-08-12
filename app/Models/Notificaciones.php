@@ -2,15 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Notificaciones extends Model
 {
-    use HasFactory;
-
     protected $table = 'notificaciones';
     protected $primaryKey = 'id_notificacion';
+    public $timestamps = false;
 
     protected $fillable = [
         'titulo',
@@ -19,15 +17,19 @@ class Notificaciones extends Model
         'requiere_accion',
         'estado',
         'data',
-        'fk_usuario'
+        'fk_usuario',
+        'created_at',
     ];
 
     protected $casts = [
+        'leido' => 'boolean',
+        'requiere_accion' => 'boolean',
         'data' => 'array',
+        'created_at' => 'datetime',
     ];
 
     public function usuario()
     {
-        return $this->belongsTo(User::class, 'fk_usuario');
+        return $this->belongsTo(User::class, 'fk_usuario', 'id');
     }
 }

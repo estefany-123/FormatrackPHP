@@ -2,27 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\TiposMovimiento;
-use App\Http\Requests\StoreTipoMovimientoRequest;
-use App\Http\Requests\UpdateTipoMovimientoRequest;
+use App\Http\Requests\TiposMovimiento\StoreTipoMovimientoRequest;
+use App\Http\Requests\TiposMovimiento\UpdateTipoMovimientoRequest;
+use App\Models\TiposMovimientos;
 
 class TiposMovimientoController extends Controller
 {
     public function index()
     {
-        $tipos = TiposMovimiento::all();
+        $tipos = TiposMovimientos::all();
         return response()->json($tipos, 200);
     }
 
     public function store(StoreTipoMovimientoRequest $request)
     {
-        $tipo = TiposMovimiento::create($request->validated());
+        $tipo = TiposMovimientos::create($request->validated());
         return response()->json($tipo, 201);
     }
 
     public function show($id)
     {
-        $tipo = TiposMovimiento::find($id);
+        $tipo = TiposMovimientos::find($id);
 
         if (!$tipo || $tipo->estado === false) {
             return response()->json(['message' => 'Tipo de movimiento no encontrado o inactivo'], 404);
@@ -33,7 +33,7 @@ class TiposMovimientoController extends Controller
 
     public function update(UpdateTipoMovimientoRequest $request, $id)
     {
-        $tipo = TiposMovimiento::find($id);
+        $tipo = TiposMovimientos::find($id);
 
         if (!$tipo || $tipo->estado === false) {
             return response()->json(['message' => 'Tipo de movimiento no encontrado o inactivo'], 404);
@@ -46,10 +46,11 @@ class TiposMovimientoController extends Controller
 
     public function destroy($id)
     {
-        $tipo = TiposMovimiento::find($id);
+        $tipo = TiposMovimientos::find($id);
 
         if (!$tipo || $tipo->estado === false) {
-            return response()->json(['message' => 'Tipo de movimiento no encontrado o ya inactivo'], 404);
+            $tipo->update(['estado'=>true]);
+            return response()->json(['message' => 'Tipo de movimiento Activado con exito'], 200);
         }
 
         $tipo->update(['estado' => false]);

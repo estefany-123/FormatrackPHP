@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreElementoRequest;
-use App\Http\Requests\UpdateElementoRequest;
+use App\Http\Requests\Elementos\StoreElementoRequest;
+use App\Http\Requests\Elementos\UpdateElementoRequest;
 use App\Models\Elementos;
+use App\Models\Inventario;
+use App\Models\Sitios;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class ElementoController extends Controller
 {
@@ -29,11 +32,35 @@ class ElementoController extends Controller
      */
     public function store(StoreElementoRequest $request)
     {
-        // Crea una nueva área usando solo los datos validados por StoreAreaRequest
-        $elemento = Elementos::create($request->validated());
+        return DB::transaction(function () use ($request) {
+            $data = $request->validated();
 
-        // Retorna la nueva área creada y el código HTTP 201 (creado)
-        return response()->json($elemento, 201);
+            if ($request->hasFile('imagen_elemento')) {
+                $archivo = $request->file('imagen_elemento');
+                $nombreImagen = Str::random(20) . '.' . $archivo->getClientOriginalExtension();
+                $archivo->storeAs('public/img', $nombreImagen);
+                $data['imagen_elemento'] = 'storage/img/' . $nombreImagen;
+            } else {
+                $data['imagen_elemento'] = 'storage/img/defaultPerfil.png';
+            }
+
+            $elemento = Elementos::create($data);
+
+            $sitios = Sitios::all();
+            foreach ($sitios as $sitio) {
+                Inventario::create([
+                    'fk_elemento' => $elemento->id_elemento,
+                    'fk_sitio' => $sitio->id_sitio,
+                    'stock' => 0,
+                    'estado' => false,
+                ]);
+            }
+
+            return response()->json([
+                'message' => 'Elemento creado con éxito.',
+                'data' => $elemento,
+            ], 201);
+        });
     }
 
     /**
@@ -55,18 +82,48 @@ class ElementoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateElementoRequest $request, $id)
-    {
-        $elemento = Elementos::find($id);
+public function update(UpdateElementoRequest $request, $id)
+{
+    try {
+        return DB::transaction(function () use ($request, $id) {
+            $data = $request->validated();
 
-        if (!$elemento || $elemento->estado === false) {
-            return response()->json(['message' => 'elemento no encontrada o inactiva'], 404);
-        }
 
-        $elemento->update($request->validated());
+            $elemento = Elementos::findOrFail($id);
 
-        return response()->json($elemento, 200);
+            if ($request->hasFile('imagen_elemento')) {
+                if ($elemento->imagen_elemento !== 'storage/img/defaultPerfil.png') {
+                    Storage::delete(str_replace('storage/', 'public/', $elemento->imagen_elemento));
+                }
+
+                $archivo = $request->file('imagen_elemento');
+                $nombreImagen = Str::random(20) . '.' . $archivo->getClientOriginalExtension();
+                $archivo->storeAs('public/img', $nombreImagen);
+                $data['imagen_elemento'] = 'storage/img/' . $nombreImagen;
+            }
+
+            if (empty($data)) {
+                return response()->json(['message' => 'No hay datos para actualizar'], 400);
+            }
+
+            $elemento->update($data);
+            $elemento->refresh();
+
+            return response()->json([
+                'message' => 'Elemento actualizado correctamente.',
+                'antes' => $elemento->getOriginal(),
+                'despues' => $elemento->toArray(),
+            ]);
+        });
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Error al actualizar elemento',
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ], 500);
     }
+}
+
 
 
     /**
@@ -77,7 +134,8 @@ class ElementoController extends Controller
         $elemento = Elementos::find($id);
 
         if (!$elemento || $elemento->estado === false) {
-            return response()->json(['message' => 'elemento no encontrada o ya inactiva'], 404);
+            $elemento->update(['estado' => true]);
+            return response()->json(['message' => 'elemento activado con exito'], 200);
         }
 
         $elemento->update(['estado' => false]);

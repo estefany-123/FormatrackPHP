@@ -50,6 +50,7 @@ class Elementos extends Model
         return $this->belongsTo(Caracteristicas::class, 'fk_caracteristica');
     }
 
+
     public function inventarios()
     {
         return $this->hasMany(Inventario::class, 'fk_elemento');
