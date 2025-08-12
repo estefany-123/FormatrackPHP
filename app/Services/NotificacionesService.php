@@ -211,9 +211,11 @@ class NotificacionesService
      */
     public function notificarIngreso($movimiento)
     {
-        if (strtolower($movimiento->tipo->nombre) !== 'ingreso') {
-            return;
-        }
+    $tipoNombre = strtolower($movimiento->tipoMovimiento->nombre ?? '');
+
+    if ($tipoNombre !== 'ingreso') {
+        return;
+    }
 
         $admins = User::whereHas('rol', fn($q) => $q->where('nombre', 'Administrador'))->get();
         $lider = User::whereHas('rol', fn($q) => $q->where('nombre', 'Lider'))->first();

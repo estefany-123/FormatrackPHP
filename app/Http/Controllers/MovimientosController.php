@@ -185,6 +185,7 @@ class MovimientosController extends Controller
             'lugar_destino' => $data['lugar_destino'] ?? null,
         ]);
 
+        $movimiento->load(['tipoMovimiento', 'usuario', 'inventario.elemento', 'sitio']);
         // Notificaciones
         $this->notificacionesService->notificarMovimientoPendiente([
             'idMovimiento' => $movimiento->id,
