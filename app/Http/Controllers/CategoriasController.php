@@ -48,9 +48,7 @@ class CategoriasController extends Controller
     {
         $categorias = Categorias::find($id);
 
-        if (!$categorias || $categorias->estado === false) {
-            return response()->json(['message' => 'Municipio no encontrado o inactivo'], 404);
-        }
+       
 
         $categorias->update($request->validated());
 
