@@ -15,6 +15,8 @@ class UpdateAreaRequest extends FormRequest
     {
         return [
             'nombre' => ['required', 'string', 'max:70'],
+            'nombre' => ['required', 'string', 'max:70'],
+            'nombre' => ['required', 'string', 'max:70'],
         ];
     }
 

@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::post('/sedes', [SedesController::class, 'store']);
-Route::get('/sedes', [SedesController::class, 'show']);
+Route::get('/sedes/{id_sede}', [SedesController::class, 'show']);
 Route::get('/sedes', [SedesController::class, 'index']);
-Route::put('/sedes/{id_sede}', [SedesController::class, 'update']);
-Route::delete('/sedes/state/{id_sede}', [SedesController::class, 'destroy']);
+Route::patch('/sedes/{id_sede}', [SedesController::class, 'update']);
+Route::patch('/sedes/state/{id_sede}', [SedesController::class, 'updateState']);

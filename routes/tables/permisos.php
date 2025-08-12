@@ -6,5 +6,5 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/permisos', [PermisosController::class, 'store']);
 Route::get('/permisos', [PermisosController::class, 'index']);
-Route::get('/permisos', [PermisosController::class, 'show']);
+Route::get('/permisos/{id_permiso}', [PermisosController::class, 'show']);
 Route::put('/permisos/{id_permiso}', [PermisosController::class, 'update']);

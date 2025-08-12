@@ -16,7 +16,7 @@ class StoreFichaRequest extends FormRequest
         return [
             'codigo_ficha' => [
                 'required',
-                'string',
+                'integer',
                 'max:20',
                 'unique:fichas,codigo_ficha'
             ],

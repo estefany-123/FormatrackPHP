@@ -5,6 +5,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/programaF', [ProgramaFormacionController::class, 'store']);
 Route::get('/programaF', [ProgramaFormacionController::class, 'index']);
-Route::get('/programaF', [ProgramaFormacionController::class, 'show']);
-Route::put('/programaF/{id_programa}', [ProgramaFormacionController::class, 'update']);
-Route::delete('/programaF/state/{id_programa}', [ProgramaFormacionController::class, 'destroy']);
+Route::get('/programaF/{id_programa}', [ProgramaFormacionController::class, 'show']);
+Route::patch('/programaF/{id_programa}', [ProgramaFormacionController::class, 'update']);
+Route::patch('/programaF/state/{id_programa}', [ProgramaFormacionController::class, 'updateState']);

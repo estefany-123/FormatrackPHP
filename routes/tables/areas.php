@@ -6,6 +6,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/areas', [AreasController::class, 'store']);
 Route::get('/areas', [AreasController::class, 'index']);
-Route::get('/areas', [AreasController::class, 'show']);
-Route::put('/areas/{id_area}', [AreasController::class, 'update']);
-Route::delete('/areas/state/{id_area}', [AreasController::class, 'destroy']);
+Route::get('/areas/{id_area}', [AreasController::class, 'show']);
+Route::patch('/areas/{id_area}', [AreasController::class, 'update']);
+Route::patch('areas/state/{id_area}', [AreasController::class, 'updateState']);
