@@ -17,9 +17,8 @@ class Caracteristicas extends Model
         'simbolo',
     ];
 
-    // Relación con Elemento (si aplica, ejemplo: muchos a uno)
     public function elementos()
     {
-        return $this->hasMany(Elementos::class, 'fk_caracteristica', 'id_caracteristica');
+        return $this->hasMany(Elementos::class, 'fk_caracteristica');
     }
 }

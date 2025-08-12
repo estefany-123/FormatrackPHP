@@ -49,10 +49,6 @@ class CaracteristicasController extends Controller
     {
         $caracteristicas = Caracteristicas::find($id);
 
-        if (!$caracteristicas || $caracteristicas->estado === false) {
-            return response()->json(['message' => 'Caracteristica no encontrado o inactivo'], 404);
-        }
-
         $caracteristicas->update($request->validated());
 
         return response()->json($caracteristicas, 200);

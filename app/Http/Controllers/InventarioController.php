@@ -2,185 +2,160 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreInventarioRequest;
-use App\Http\Requests\UpdateInventarioRequest;
+use App\Http\Requests\Inventario\StoreInventarioRequest;
+use App\Http\Requests\Inventario\UpdateInventarioRequest;
 use App\Models\CodigoInventario;
 use App\Models\Inventario;
-use Dotenv\Store\StoreBuilder;
+use App\Services\NotificacionesService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class InventarioController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    protected NotificacionesService $notificacionesService;
+
+    public function __construct(NotificacionesService $notificacionesService)
+    {
+        $this->notificacionesService = $notificacionesService;
+    }
+
     public function index()
     {
-        $inventario = Inventario::all();
-        return response()->json($inventario, 200);
+        $inventarios = Inventario::all();
+        return response()->json($inventarios, 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function agregarStock(Request $request)
-    {
-        $request->validate([
-            'fk_elemento' => 'required|exists:elementos,id_elemento',
-            'fk_sitio' => 'required|exists:sitios,id_sitio',
-            'codigos' => 'nullable|array',
-            'codigos.*' => 'string'
-        ]);
-
-        return DB::transaction(function () use ($request) {
-            $inventario = Inventario::with('fkElemento.fkCaracteristica', 'fkSitio')
-                ->where('fk_elemento', $request->fk_elemento)
-                ->where('fk_sitio', $request->fk_sitio)
-                ->first();
-
-            if (!$inventario) {
-                return response()->json(['error' => 'Inventario no encontrado'], 404);
-            }
-
-            $elemento = $inventario->fkElemento;
-
-            if ($elemento->fkCaracteristica) {
-                if (!$request->filled('codigos') || count($request->codigos) === 0) {
-                    return response()->json([
-                        'error' => 'Este elemento requiere códigos para agregar stock'
-                    ], 400);
-                }
-
-                foreach ($request->codigos as $codigo) {
-                    CodigoInventario::create([
-                        'codigo' => $codigo,
-                        'fk_inventario' => $inventario->id_inventario,
-                    ]);
-                }
-
-                $inventario->stock += count($request->codigos);
-            } else {
-                if (!$request->has('stock') || $request->stock <= 0) {
-                    return response()->json([
-                        'error' => 'Debe proporcionar una cantidad válida de stock'
-                    ], 400);
-                }
-
-                $inventario->stock += $request->stock;
-            }
-
-            $inventario->save();
-
-            // // Notificaciones
-            // app(NotificacionService::class)->notificarStockBajo($inventario);
-
-            // if ($elemento->perecedero && $elemento->fecha_vencimiento) {
-            //     app(NotificacionService::class)->notificarProximaCaducidad([
-            //         'elemento' => $elemento,
-            //         'fecha_caducidad' => $elemento->fecha_vencimiento,
-            //     ]);
-            // }
-
-            return response()->json([
-                'message' => 'Stock actualizado correctamente',
-                'stock' => $inventario->stock,
-            ]);
-        });
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreInventarioRequest $request)
-    {
-        // Crea una nueva área usando solo los datos validados por StoreAreaRequest
-        $inventario = Inventario::create($request->validated());
-
-        // Retorna la nueva área creada y el código HTTP 201 (creado)
-        return response()->json($inventario, 201);
-    }
-
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         $inventario = Inventario::find($id);
 
         if (!$inventario) {
-            return response()->json(['message' => 'No se encontro el inventario con ese id'], 404);
+            return response()->json(['message' => 'No se encontró el inventario con ese id'], 404);
         }
 
         return response()->json($inventario, 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Inventario $inventario)
+    public function store(StoreInventarioRequest $request)
     {
-        //
-    }
+        $data = $request->validated();
 
-    /**
-     * Update the specified resource in storage.
-     */
-public function update(UpdateInventarioRequest $request, $id)
-{
-    $inventario = Inventario::with('fkElemento.fkCaracteristica')->find($id);
+        $inventario = Inventario::create($data);
 
-    if (!$inventario || $inventario->estado === false) {
-        return response()->json(['message' => 'Inventario no encontrado o inactivo'], 404);
-    }
-
-    // Verifica si el elemento tiene características (requiere códigos)
-    if ($inventario->fkElemento && $inventario->fkElemento->fkCaracteristica) {
         return response()->json([
-            'message' => 'Este inventario requiere códigos. Use el método de agregar stock por códigos.'
-        ], 400);
+            'message' => 'Inventario creado correctamente',
+            'data'    => $inventario,
+        ], 201);
     }
-
-    // Valida que el stock a agregar sea válido
-    if (!$request->has('stock') || $request->stock <= 0) {
-        return response()->json([
-            'message' => 'La cantidad debe ser mayor a 0.'
-        ], 400);
-    }
-
-    // Actualiza el stock sumando el valor recibido
-    $inventario->stock += $request->stock;
-    $inventario->save();
-
-    // Notificaciones (descomenta cuando tengas el servicio)
-    // app(NotificacionService::class)->notificarStockBajo($inventario);
-    // if ($inventario->fkElemento->perecedero && $inventario->fkElemento->fecha_vencimiento) {
-    //     app(NotificacionService::class)->notificarProximaCaducidad([
-    //         'elemento' => $inventario->fkElemento,
-    //         'fecha_caducidad' => $inventario->fkElemento->fecha_vencimiento,
-    //     ]);
-    // }
-
-    return response()->json([
-        'message' => 'Inventario actualizado correctamente',
-        'stock' => $inventario->stock,
-    ], 200);
-}
-
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
+    // Aquí recibe Request, valida y ejecuta agregar stock
+    public function agregarStock(Request $request)
     {
-        $inventario = Inventario::find($id);
+        $data = $request->validate([
+            'fk_elemento' => 'required|integer',
+            'fk_sitio' => 'required|integer',
+            'stock' => 'sometimes|integer|min:1',
+            'codigos' => 'sometimes|array',
+            'codigos.*' => 'string',
+        ]);
+
+        $inventario = Inventario::with('elemento.caracteristica')
+            ->where('fk_elemento', $data['fk_elemento'])
+            ->where('fk_sitio', $data['fk_sitio'])
+            ->first();
+
+        if (!$inventario) {
+            return response()->json(['message' => 'Inventario no encontrado'], 404);
+        }
+
+        if (!$inventario->estado) {
+            throw ValidationException::withMessages([
+                'estado' => ['El inventario está inactivo. Actívelo para agregar stock.'],
+            ]);
+        }
+
+        if ($inventario->elemento->caracteristica) {
+            if (empty($data['codigos']) || count($data['codigos']) === 0) {
+                throw ValidationException::withMessages([
+                    'codigos' => ['Este elemento requiere códigos para agregar stock'],
+                ]);
+            }
+
+            foreach ($data['codigos'] as $codigo) {
+                if (CodigoInventario::where('codigo', $codigo)->exists()) {
+                    throw ValidationException::withMessages([
+                        'codigo' => ["El código '{$codigo}' ya está registrado"],
+                    ]);
+                }
+                CodigoInventario::create([
+                    'codigo' => $codigo,
+                    'fk_inventario' => $inventario->id_inventario,
+                ]);
+            }
+            $inventario->increment('stock', count($data['codigos']));
+        } else {
+            if (empty($data['stock']) || $data['stock'] <= 0) {
+                throw ValidationException::withMessages([
+                    'stock' => ['Debe especificar una cantidad válida para agregar stock'],
+                ]);
+            }
+            $inventario->increment('stock', $data['stock']);
+        }
+
+        $this->notificacionesService->notificarStockBajo($inventario);
+
+        if ($inventario->elemento->perecedero && $inventario->elemento->fecha_vencimiento) {
+            $this->notificacionesService->notificarProximaCaducidad($inventario);
+        }
+
+        return response()->json(['message' => 'Stock actualizado correctamente']);
+    }
+
+    public function update(UpdateInventarioRequest $request, int $id)
+    {
+        $data = $request->validate([
+            'stock' => 'required|integer|min:1',
+            // otros campos que quieras permitir
+        ]);
+
+        $inventario = Inventario::with('elemento.caracteristica')->find($id);
+
+        if (!$inventario) {
+            return response()->json(['message' => 'Inventario no encontrado'], 404);
+        }
+
+        if (!$inventario->estado) {
+            throw ValidationException::withMessages([
+                'estado' => ['Este elemento está inactivo. Actívelo antes de agregar stock.'],
+            ]);
+        }
+
+        if ($inventario->elemento->caracteristica) {
+            throw ValidationException::withMessages([
+                'codigos' => ['Este inventario requiere códigos. Use el método de agregar stock por códigos.'],
+            ]);
+        }
+
+        $inventario->increment('stock', $data['stock']);
+
+        $this->notificacionesService->notificarStockBajo($inventario);
+
+        return response()->json($inventario);
+    }
+
+    public function destroy($id_inventario)
+    {
+        $inventario = Inventario::find($id_inventario);
 
         if (!$inventario || $inventario->estado === false) {
-            return response()->json(['message' => 'inventario no encontrado o ya inactiva'], 404);
+            if ($inventario) {
+                $inventario->update(['estado' => true]);
+                return response()->json(['message' => 'Inventario activado correctamente'], 200);
+            }
+            return response()->json(['message' => 'Inventario no encontrado'], 404);
         }
 
         $inventario->update(['estado' => false]);
 
-        return response()->json(['message' => 'inventario desactivado correctamente'], 200);
+        return response()->json(['message' => 'Inventario desactivado correctamente'], 200);
     }
 }

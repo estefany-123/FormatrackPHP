@@ -1,182 +1,111 @@
 <?php
 
-namespace App\Services;
+namespace App\Http\Controllers;
 
+use App\Http\Requests\Notificaciones\CreateNotificacionRequest;
+use App\Http\Requests\Notificaciones\UpdateNotificacionRequest;
 use App\Models\Notificaciones;
-use App\Models\User;
-use App\Models\Inventario;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Http\Request;
 
-class NotificacionService
+class NotificacionController extends Controller
 {
-    public function create(array $data)
+    // Listar todas con usuario
+    public function index()
     {
-        $usuario = User::findOrFail($data['fk_usuario']);
+        $notificaciones = Notificaciones::with('usuario')
+            ->orderByDesc('created_at')
+            ->get();
 
-        $notificacion = Notificaciones::create([
-            'titulo' => $data['titulo'],
-            'mensaje' => $data['mensaje'],
-            'requiere_accion' => $data['requiere_accion'],
-            'estado' => $data['requiere_accion'] ? 'enProceso' : null,
-            'data' => $data['data'] ?? [],
-            'fk_usuario' => $usuario->id,
-        ]);
-
-        $this->emitirWebSocket($usuario->id, $notificacion);
-
-        return $notificacion;
+        return response()->json($notificaciones);
     }
 
+    // Obtener por usuario, filtrando segun lógica inventario (simplificada)
+    public function getPorUsuario($idUsuario)
+    {
+        $notificaciones = Notificaciones::where('fk_usuario', $idUsuario)
+            ->orderByDesc('created_at')
+            ->get();
+
+        // Para simplificar, sin lógica inventario, solo devuelvo todas
+        return response()->json($notificaciones);
+    }
+
+    // Crear notificación
+    public function store(CreateNotificacionRequest $request)
+    {
+        $data = $request->validated();
+
+        // Parse JSON string a array si viene como string
+        if (isset($data['data']) && is_string($data['data'])) {
+            $data['data'] = json_decode($data['data'], true);
+        }
+
+        $notificacion = Notificaciones::create($data);
+
+        // Aquí deberías emitir WebSocket si usas, o eventos
+
+        return response()->json($notificacion, 201);
+    }
+
+    // Mostrar una notificación
+    public function show($id)
+    {
+        $notificacion = Notificaciones::with('usuario')->findOrFail($id);
+        return response()->json($notificacion);
+    }
+
+    // Actualizar
+    public function update(UpdateNotificacionRequest $request, $id)
+    {
+        $notificacion = Notificaciones::findOrFail($id);
+
+        $data = $request->validated();
+
+        if (isset($data['data']) && is_string($data['data'])) {
+            $data['data'] = json_decode($data['data'], true);
+        }
+
+        $notificacion->update($data);
+
+        return response()->json($notificacion);
+    }
+
+    // Marcar como leído
     public function marcarComoLeida($id)
     {
         $notificacion = Notificaciones::findOrFail($id);
         $notificacion->leido = true;
         $notificacion->save();
-        return $notificacion;
+
+        return response()->json($notificacion);
     }
 
-    public function cambiarEstado($id, $estado)
+    // Cambiar estado (aceptado/cancelado)
+    public function cambiarEstado(Request $request, $id)
     {
+        $request->validate([
+            'estado' => 'required|in:aceptado,cancelado',
+        ]);
+
         $notificacion = Notificaciones::findOrFail($id);
+
         if (!$notificacion->requiere_accion) {
-            throw new \Exception("Esta notificación no requiere acción");
+            return response()->json(['error' => 'Esta notificación no requiere acción'], 422);
         }
 
-        $notificacion->estado = $estado;
+        $notificacion->estado = $request->estado;
         $notificacion->leido = true;
         $notificacion->save();
-        return $notificacion;
+
+        return response()->json($notificacion);
     }
 
-    public function notificarMovimientoPendiente(array $movimiento)
+    // Eliminar notificación
+    public function destroy($id)
     {
-        $tipoNombre = strtolower($movimiento['tipo']['nombre'] ?? '');
-        if (!in_array($tipoNombre, ['salida', 'prestamo'])) return;
+        $notificacion = Notificaciones::findOrFail($id);
+        $notificacion->delete();
 
-        $usuarios = User::whereHas('rol', function ($q) {
-            $q->whereIn('nombre', ['Administrador', 'Lider']);
-        })->get();
-
-        $mensaje = "Movimiento de tipo {$movimiento['tipo']['nombre']} por {$movimiento['usuario']['nombre']}. Requiere revisión.";
-
-        foreach ($usuarios as $usuario) {
-            $this->enviarYGuardarNotificacion(
-                'Movimiento pendiente',
-                $mensaje,
-                true,
-                $usuario,
-                ['idMovimiento' => $movimiento['idMovimiento']],
-                'enProceso'
-            );
-        }
-    }
-
-    public function notificarIngreso(array $movimiento)
-    {
-        $tipo = strtolower($movimiento['tipo']['nombre'] ?? '');
-        if ($tipo !== 'ingreso') return;
-
-        $usuarios = User::whereHas('rol', function ($q) {
-            $q->whereIn('nombre', ['Administrador', 'Lider']);
-        })->get();
-
-        $mensaje = "Ingreso de {$movimiento['cantidad']} \"{$movimiento['elemento']['nombre']}\" por {$movimiento['usuario']['nombre']} al sitio {$movimiento['sitio']['nombre']}.";
-
-        foreach ($usuarios as $usuario) {
-            $this->enviarYGuardarNotificacion(
-                'Ingreso registrado',
-                $mensaje,
-                false,
-                $usuario,
-                ['idMovimiento' => $movimiento['id']]
-            );
-        }
-    }
-
-    public function notificarStockBajo(Inventario $inventario)
-    {
-        if ($inventario->estado !== true || $inventario->stock > 15) return;
-
-        $admins = User::whereHas('rol', fn ($q) => $q->where('nombre', 'Administrador'))->get();
-        $mensaje = "Stock bajo del elemento \"{$inventario->elemento->nombre}\".";
-
-        foreach ($admins as $admin) {
-            $this->enviarYGuardarNotificacion(
-                'Stock bajo',
-                $mensaje,
-                false,
-                $admin,
-                ['idElemento' => $inventario->fk_elemento]
-            );
-        }
-    }
-
-    public function notificarProximaCaducidad(Inventario $inventario)
-    {
-        if ($inventario->estado !== true || !$inventario->elemento?->fecha_vencimiento) return;
-
-        $hoy = now();
-        $fecha = new \Carbon\Carbon($inventario->elemento->fecha_vencimiento);
-        $dias = $hoy->diffInDays($fecha, false);
-
-        if ($dias <= 7) {
-            $admins = User::whereHas('rol', fn ($q) => $q->where('nombre', 'Administrador'))->get();
-            $mensaje = "El elemento \"{$inventario->elemento->nombre}\" caduca en {$dias} días.";
-
-            foreach ($admins as $admin) {
-                $this->enviarYGuardarNotificacion(
-                    'Elemento por caducar',
-                    $mensaje,
-                    false,
-                    $admin,
-                    [
-                        'idElemento' => $inventario->fk_elemento,
-                        'fechaCaducidad' => $inventario->elemento->fecha_vencimiento,
-                    ]
-                );
-            }
-        }
-    }
-
-    public function verificarInventariosYNotificar()
-    {
-        $inventarios = Inventario::with('elemento')->get();
-
-        foreach ($inventarios as $inventario) {
-            $this->notificarStockBajo($inventario);
-            $this->notificarProximaCaducidad($inventario);
-        }
-    }
-
-    public function enviarYGuardarNotificacion(
-        string $titulo,
-        string $mensaje,
-        bool $requiereAccion,
-        User $usuario,
-        array $data = [],
-        ?string $estado = null
-    ) {
-        $notificacion = Notificaciones::create([
-            'titulo' => $titulo,
-            'mensaje' => $mensaje,
-            'requiere_accion' => $requiereAccion,
-            'estado' => $requiereAccion ? ($estado ?? 'enProceso') : null,
-            'data' => $data,
-            'leido' => false,
-            'fk_usuario' => $usuario->id,
-        ]);
-
-        $this->emitirWebSocket($usuario->id, $notificacion);
-    }
-
-    protected function emitirWebSocket(int $userId, Notificaciones $notificacion)
-    {
-        // Puedes usar Laravel Echo, Pusher o WebSockets aquí
-        // Por ejemplo:
-        // broadcast(new \App\Events\NotificacionEnviada($userId, $notificacion));
-        Log::info('🔔 Emitiendo notificación WS', [
-            'usuario' => $userId,
-            'notificacion' => $notificacion->toArray(),
-        ]);
+        return response()->json(['message' => 'Notificación eliminada']);
     }
 }

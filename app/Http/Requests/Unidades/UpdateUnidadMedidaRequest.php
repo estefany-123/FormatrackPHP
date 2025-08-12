@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Unidades;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateTipoMovimientoRequest extends FormRequest
+class UpdateUnidadMedidaRequest extends FormRequest
 {
     public function authorize(): bool
     {

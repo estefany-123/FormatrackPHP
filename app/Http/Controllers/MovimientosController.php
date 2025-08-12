@@ -2,216 +2,312 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Movimientos;
+use App\Http\Requests\Movimientos\StoreMovimientoRequest;
+use App\Http\Requests\Movimientos\UpdateMovimientoRequest;
 use App\Models\Inventario;
 use App\Models\CodigoInventario;
-use App\Models\TiposMovimiento;
-use App\Models\Notificacion;
+use App\Models\Movimientos;
 use App\Models\Notificaciones;
+use App\Models\TiposMovimientos;
 use App\Models\User;
-use App\Models\Usuario;
-use Illuminate\Http\Request;
+use App\Services\NotificacionesService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use App\Services\NotificacionService;
+use Symfony\Component\HttpFoundation\Response;
 
-class MovimientoController extends Controller
+class MovimientosController extends Controller
 {
-    protected $notificacionService;
+    protected NotificacionesService $notificacionesService;
 
-    public function __construct(Notificaciones $notificacion)
+    public function __construct(NotificacionesService $notificacionesService)
     {
-        $this->notificacionService = $notificacion;
+        $this->notificacionesService = $notificacionesService;
     }
 
-    public function store(Request $request)
+    // Listar todos los movimientos
+    public function index(): JsonResponse
     {
-        return DB::transaction(function () use ($request) {
-            $data = $request->all();
+        $movimientos = Movimientos::with([
+            'inventario.elemento.caracteristica',
+            'sitio',
+            'tiposMovimientos',
+            'usuario.rol'
+        ])->get();
 
-            $inventario = Inventario::with('elemento.caracteristica', 'sitio')
-                ->find($data['fk_inventario']);
+        return response()->json($movimientos);
+    }
 
-            if (!$inventario) {
-                throw new NotFoundHttpException('Inventario no encontrado');
-            }
+    // Crear movimiento
+   public function store(StoreMovimientoRequest $request): JsonResponse
+{
+    $data = $request->validated();
+    $idUsuario = $request->user()?->id;
 
-            $tipo = TiposMovimiento::find($data['fk_tipo_movimiento']);
-            if (!$tipo) {
-                throw new NotFoundHttpException('Tipo de movimiento inválido');
-            }
+    if (!$idUsuario) {
+        return response()->json(['error' => 'Usuario no autenticado'], 401);
+    }
 
-            $tieneCaracteristicas = !is_null($inventario->elemento?->caracteristica);
-            $nombreTipo = strtolower($tipo->nombre);
+    DB::beginTransaction();
 
-            // === Con características ===
-            if ($tieneCaracteristicas) {
-                if (in_array($nombreTipo, ['salida', 'baja', 'prestamo'])) {
-                    if (empty($data['codigos'])) {
-                        throw ValidationException::withMessages([
-                            'codigos' => 'Debe especificar códigos para este movimiento'
-                        ]);
+    try {
+        $inventario = Inventario::with('elemento.caracteristica', 'sitio')->findOrFail($data['fk_inventario']);
+        $tiposMovimientos = TiposMovimientos::findOrFail($data['fk_tipo_movimiento']);
+        $usuario = User::with('rol')->findOrFail($idUsuario);
+
+        $tieneCaracteristicas = $inventario->elemento && !is_null($inventario->elemento->caracteristica);
+        $nombreTipo = strtolower($tiposMovimientos->nombre);
+        $codigos = $data['codigos'] ?? [];
+
+        if ($tieneCaracteristicas) {
+            switch ($nombreTipo) {
+                case 'salida':
+                case 'baja':
+                case 'prestamo':
+                    if (empty($codigos)) {
+                        throw ValidationException::withMessages(['codigos' => 'Debe especificar códigos para este movimiento']);
                     }
 
+                    // Códigos que están en inventario y NO usados (disponibles)
                     $codigosDisponibles = CodigoInventario::where('fk_inventario', $inventario->id)
                         ->where('uso', false)
                         ->pluck('codigo')
                         ->toArray();
 
-                    $faltantes = array_diff($data['codigos'], $codigosDisponibles);
-                    if (count($faltantes) > 0) {
-                        throw ValidationException::withMessages([
-                            'codigos' => 'Códigos no disponibles: ' . implode(', ', $faltantes)
-                        ]);
+                    $faltantes = array_diff($codigos, $codigosDisponibles);
+
+                    if (!empty($faltantes)) {
+                        throw ValidationException::withMessages(['codigos' => 'Estos códigos no están disponibles: ' . implode(', ', $faltantes)]);
                     }
 
-                    CodigoInventario::whereIn('codigo', $data['codigos'])
-                        ->where('fk_inventario', $inventario->id)
+                    CodigoInventario::where('fk_inventario', $inventario->id)
+                        ->whereIn('codigo', $codigos)
                         ->update(['uso' => true]);
 
-                    $inventario->stock -= count($data['codigos']);
-                } elseif ($nombreTipo === 'ingreso') {
-                    if (empty($data['codigos'])) {
-                        throw ValidationException::withMessages([
-                            'codigos' => 'Debe especificar códigos para este movimiento'
-                        ]);
+                    $inventario->stock -= count($codigos);
+                    break;
+
+                case 'ingreso':
+                    if (empty($codigos)) {
+                        throw ValidationException::withMessages(['codigos' => 'Debe especificar códigos para este movimiento']);
                     }
 
-                    foreach ($data['codigos'] as $codigo) {
+                    // Verificar que los códigos no existan aún en inventario
+                    $codigosExistentes = CodigoInventario::where('fk_inventario', $inventario->id)
+                        ->whereIn('codigo', $codigos)
+                        ->pluck('codigo')
+                        ->toArray();
+
+                    if (!empty($codigosExistentes)) {
+                        throw ValidationException::withMessages(['codigos' => 'Los siguientes códigos ya existen en el inventario: ' . implode(', ', $codigosExistentes)]);
+                    }
+
+                    foreach ($codigos as $codigo) {
                         CodigoInventario::create([
                             'codigo' => $codigo,
-                            'fk_inventario' => $inventario->id,
+                            'fk_inventario' => $inventario->id_inventario,
                             'uso' => false,
                         ]);
                     }
 
-                    $inventario->stock += count($data['codigos']);
-                }
+                    $inventario->stock += count($codigos);
+                    break;
+
+                case 'devolucion':
+                    if (empty($codigos)) {
+                        throw ValidationException::withMessages(['codigos' => 'Debe especificar códigos para devolver']);
+                    }
+
+                    // Códigos que están en uso (prestados)
+                    $codigosEnUso = CodigoInventario::where('fk_inventario', $inventario->id)
+                        ->where('uso', true)
+                        ->pluck('codigo')
+                        ->toArray();
+
+                    $noPrestados = array_diff($codigos, $codigosEnUso);
+
+                    if (!empty($noPrestados)) {
+                        throw ValidationException::withMessages(['codigos' => 'Estos códigos no están en préstamo: ' . implode(', ', $noPrestados)]);
+                    }
+
+                    CodigoInventario::where('fk_inventario', $inventario->id)
+                        ->whereIn('codigo', $codigos)
+                        ->update(['uso' => false]);
+
+                    $inventario->stock += count($codigos);
+                    break;
+
+                default:
+                    // Otros tipos de movimientos con características no necesitan códigos obligatorios
+                    break;
             }
-            // === Sin características ===
-            else {
-                if (in_array($nombreTipo, ['salida', 'baja', 'prestamo'])) {
-                    if (empty($data['cantidad']) || $data['cantidad'] <= 0) {
-                        throw ValidationException::withMessages([
-                            'cantidad' => 'Debe indicar una cantidad válida'
-                        ]);
-                    }
-                    if ($data['cantidad'] > $inventario->stock) {
-                        throw ValidationException::withMessages([
-                            'cantidad' => 'No hay suficiente stock disponible'
-                        ]);
-                    }
+        } else {
+            // No tiene características, trabajar solo con cantidad
+            $cantidad = $data['cantidad'] ?? 0;
 
-                    $inventario->stock -= $data['cantidad'];
-                } elseif (in_array($nombreTipo, ['ingreso', 'devolucion'])) {
-                    if (empty($data['cantidad']) || $data['cantidad'] <= 0) {
-                        throw ValidationException::withMessages([
-                            'cantidad' => 'Debe indicar una cantidad válida'
-                        ]);
-                    }
-
-                    $inventario->stock += $data['cantidad'];
+            if (in_array($nombreTipo, ['salida', 'baja', 'prestamo'])) {
+                if ($cantidad <= 0) {
+                    throw ValidationException::withMessages(['cantidad' => 'Debe indicar cantidad válida']);
                 }
+                if ($cantidad > $inventario->stock) {
+                    throw ValidationException::withMessages(['cantidad' => 'No hay suficiente stock']);
+                }
+
+                $inventario->stock -= $cantidad;
+            } elseif (in_array($nombreTipo, ['ingreso', 'devolucion'])) {
+                if ($cantidad <= 0) {
+                    throw ValidationException::withMessages(['cantidad' => 'Debe indicar cantidad válida']);
+                }
+
+                $inventario->stock += $cantidad;
             }
+        }
 
-            $inventario->save();
+        $inventario->save();
 
-            $movimiento = Movimientos::create([
-                'fk_inventario' => $inventario->id,
-                'fk_tipo_movimiento' => $tipo->id,
-                'cantidad' => $data['cantidad'] ?? count($data['codigos'] ?? []),
-                'descripcion' => $data['descripcion'] ?? null,
-                'fk_usuario' => $request->user()->id ?? $data['fk_usuario'],
-                'fk_sitio' => $data['fk_sitio'],
-                'en_proceso' => true,
-                'aceptado' => false,
-                'cancelado' => false,
-                'hora_ingreso' => $data['hora_ingreso'] ?? null,
-                'hora_salida' => $data['hora_salida'] ?? null,
-                'fecha_devolucion' => $data['fecha_devolucion'] ?? null,
-                'devolutivo' => $data['devolutivo'] ?? null,
-                'no_devolutivo' => $data['no_devolutivo'] ?? null,
-                'lugar_destino' => $data['lugar_destino'] ?? null,
+        $esIngreso = $nombreTipo === 'ingreso';
+
+        $movimiento = Movimientos::create([
+            'fk_inventario' => $inventario->id_inventario,
+            'fk_tipo_movimiento' => $tiposMovimientos->id_tipo,
+            'cantidad' => $data['cantidad'] ?? count($codigos),
+            'descripcion' => $data['descripcion'] ?? null,
+            'fk_usuario' => $idUsuario,
+            'fk_sitio' => $data['fk_sitio'],
+            'en_proceso' => $esIngreso ? false : true,
+            'aceptado' => $esIngreso ? true : false,
+            'cancelado' => false,
+            'hora_ingreso' => $data['hora_ingreso'] ?? null,
+            'hora_salida' => $data['hora_salida'] ?? null,
+            'fecha_devolucion' => $data['fecha_devolucion'] ?? null,
+            'devolutivo' => $data['devolutivo'] ?? null,
+            'no_devolutivo' => $data['no_devolutivo'] ?? null,
+            'lugar_destino' => $data['lugar_destino'] ?? null,
+        ]);
+
+        // Notificaciones
+        $this->notificacionesService->notificarMovimientoPendiente([
+            'idMovimiento' => $movimiento->id,
+            'tipo' => $tiposMovimientos,
+            'usuario' => $usuario,
+            'sitio' => ['id' => $data['fk_sitio'], 'nombre' => $inventario->sitio->nombre ?? 'Sitio'],
+        ]);
+
+        $this->notificacionesService->notificarIngreso([
+            'id' => $movimiento->id,
+            'tipo' => $tiposMovimientos,
+            'cantidad' => $movimiento->cantidad,
+            'elemento' => $inventario->elemento,
+            'usuario' => $usuario,
+            'sitio' => ['id' => $data['fk_sitio'], 'nombre' => $inventario->sitio->nombre ?? 'Sitio'],
+        ]);
+
+        if ($nombreTipo === 'prestamo') {
+            $this->notificacionesService->notificarPrestamoConDevolucion([
+                'movimiento' => $movimiento,
+                'usuario' => $usuario,
+                'elemento' => $inventario->elemento,
             ]);
+        }
 
-            $usuario = User::with('rol')->find($request->user()->id ?? $data['fk_usuario']);
+        DB::commit();
 
-            // Notificaciones
-            $this->notificacionService->notificarMovimientoPendiente($movimiento, $usuario, $inventario);
-            $this->notificacionService->notificarIngreso($movimiento, $usuario, $inventario);
-            $this->notificacionService->notificarStockBajo($inventario);
-
-            return response()->json($movimiento, 201);
-        });
+        return response()->json($movimiento, Response::HTTP_CREATED);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => config('app.debug') ? $e->getTrace() : null,
+        ], Response::HTTP_BAD_REQUEST);
     }
+}
 
-    public function index()
+
+    // Mostrar un movimiento
+    public function show(int $id): JsonResponse
     {
-        return Movimientos::with(['inventario.elemento', 'sitio', 'tiposMovimiento', 'usuario'])->get();
+        $movimiento = Movimientos::with(['inventario', 'sitio', 'tiposMovimientos', 'usuario'])->find($id);
+
+        if (!$movimiento) {
+            return response()->json(['message' => 'Movimiento no encontrado'], Response::HTTP_NOT_FOUND);
+        }
+
+        return response()->json($movimiento);
     }
 
-    public function show($id)
+    // Actualizar movimiento
+    public function update(UpdateMovimientoRequest $request, int $id): JsonResponse
     {
         $movimiento = Movimientos::find($id);
+
         if (!$movimiento) {
-            abort(404, 'Movimientos no encontrado');
+            return response()->json(['message' => 'Movimiento no encontrado'], Response::HTTP_NOT_FOUND);
         }
-        return $movimiento;
-    }
 
-    public function update(Request $request, $id)
-    {
-        $movimiento = Movimientos::findOrFail($id);
+        $data = $request->validated();
 
-        $movimiento->update($request->only([
-            'hora_ingreso',
-            'hora_salida',
-            'descripcion',
-            'cantidad',
-            'fecha_devolucion',
-        ]));
+        $movimiento->update($data);
 
         return response()->json($movimiento);
     }
 
-    public function accept($id)
+    // Aceptar movimiento pendiente
+    public function accept(int $id): JsonResponse
     {
-        $movimiento = Movimientos::findOrFail($id);
+        $movimiento = Movimientos::find($id);
 
-        if (!$movimiento->en_proceso) {
-            return response()->json(['error' => 'Este movimiento ya fue gestionado'], 400);
+        if (!$movimiento) {
+            return response()->json(['message' => "El movimiento con id {$id} no existe"], Response::HTTP_NOT_FOUND);
         }
 
-        $movimiento->update([
-            'en_proceso' => false,
-            'aceptado' => true,
-            'cancelado' => false,
-        ]);
+        if (!$movimiento->en_proceso) {
+            return response()->json(['message' => 'Este movimiento ya fue gestionado'], Response::HTTP_BAD_REQUEST);
+        }
 
-        Notificaciones::whereJsonContains('data->idMovimiento', $id)
+        $movimiento->aceptado = true;
+        $movimiento->en_proceso = false;
+        $movimiento->cancelado = false;
+        $movimiento->save();
+
+        Notificaciones::where('data->idMovimiento', $movimiento->id)
             ->update(['estado' => 'aceptado']);
 
+        $this->notificacionesService->notificarMovimientoAceptado($movimiento);
+
         return response()->json($movimiento);
     }
 
-    public function cancel($id)
+    // Cancelar movimiento pendiente
+    public function cancel(int $id): JsonResponse
     {
-        $movimiento = Movimientos::findOrFail($id);
+        $movimiento = Movimientos::find($id);
 
-        if (!$movimiento->en_proceso) {
-            return response()->json(['error' => 'Este movimiento ya fue gestionado'], 400);
+        if (!$movimiento) {
+            return response()->json(['message' => "El movimiento con id {$id} no existe"], Response::HTTP_NOT_FOUND);
         }
 
-        $movimiento->update([
-            'en_proceso' => false,
-            'aceptado' => false,
-            'cancelado' => true,
-        ]);
+        if (!$movimiento->en_proceso) {
+            return response()->json(['message' => 'Este movimiento ya fue gestionado'], Response::HTTP_BAD_REQUEST);
+        }
 
-        Notificaciones::whereJsonContains('data->idMovimiento', $id)
+        $movimiento->aceptado = false;
+        $movimiento->en_proceso = false;
+        $movimiento->cancelado = true;
+        $movimiento->save();
+
+        Notificaciones::where('data->idMovimiento', $movimiento->id)
             ->update(['estado' => 'cancelado']);
 
         return response()->json($movimiento);
+    }
+
+    // Obtener códigos disponibles para devolver (método extra)
+    public function codigosDisponiblesParaDevolver(int $idInventario): JsonResponse
+    {
+        $codigosEnUso = CodigoInventario::where('fk_inventario', $idInventario)
+            ->where('uso', true)
+            ->pluck('codigo');
+
+        return response()->json($codigosEnUso);
     }
 }

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreElementoRequest;
-use App\Http\Requests\UpdateElementoRequest;
+use App\Http\Requests\Elementos\StoreElementoRequest;
+use App\Http\Requests\Elementos\UpdateElementoRequest;
 use App\Models\Elementos;
 use App\Models\Inventario;
 use App\Models\Sitios;
@@ -30,38 +30,38 @@ class ElementoController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-public function store(StoreElementoRequest $request)
-{
-    return DB::transaction(function () use ($request) {
-        $data = $request->validated();
+    public function store(StoreElementoRequest $request)
+    {
+        return DB::transaction(function () use ($request) {
+            $data = $request->validated();
 
-        if ($request->hasFile('imagen_elemento')) {
-            $archivo = $request->file('imagen_elemento');
-            $nombreImagen = Str::random(20) . '.' . $archivo->getClientOriginalExtension();
-            $archivo->storeAs('public/img', $nombreImagen);
-            $data['imagen_elemento'] = 'storage/img/' . $nombreImagen;
-        } else {
-            $data['imagen_elemento'] = 'storage/img/defaultPerfil.png';
-        }
+            if ($request->hasFile('imagen_elemento')) {
+                $archivo = $request->file('imagen_elemento');
+                $nombreImagen = Str::random(20) . '.' . $archivo->getClientOriginalExtension();
+                $archivo->storeAs('public/img', $nombreImagen);
+                $data['imagen_elemento'] = 'storage/img/' . $nombreImagen;
+            } else {
+                $data['imagen_elemento'] = 'storage/img/defaultPerfil.png';
+            }
 
-        $elemento = Elementos::create($data);
+            $elemento = Elementos::create($data);
 
-        $sitios = Sitios::all();
-        foreach ($sitios as $sitio) {
-            Inventario::create([
-                'fk_elemento' => $elemento->id_elemento,
-                'fk_sitio' => $sitio->id_sitio,
-                'stock' => 0,
-                'estado' => false,
-            ]);
-        }
+            $sitios = Sitios::all();
+            foreach ($sitios as $sitio) {
+                Inventario::create([
+                    'fk_elemento' => $elemento->id_elemento,
+                    'fk_sitio' => $sitio->id_sitio,
+                    'stock' => 0,
+                    'estado' => false,
+                ]);
+            }
 
-        return response()->json([
-            'message' => 'Elemento creado con éxito.',
-            'data' => $elemento,
-        ], 201);
-    });
-}
+            return response()->json([
+                'message' => 'Elemento creado con éxito.',
+                'data' => $elemento,
+            ], 201);
+        });
+    }
 
     /**
      * Display the specified resource.
@@ -84,30 +84,46 @@ public function store(StoreElementoRequest $request)
      */
 public function update(UpdateElementoRequest $request, $id)
 {
-    return DB::transaction(function () use ($request, $id) {
-        $data = $request->validated();
-        $elemento = Elementos::findOrFail($id);
+    try {
+        return DB::transaction(function () use ($request, $id) {
+            $data = $request->validated();
 
-        // Si hay nueva imagen_elemento, reemplazar la anterior
-        if ($request->hasFile('imagen_elemento')) {
-            if ($elemento->imagen_elemento !== 'storage/img/defaultPerfil.png') {
-                Storage::delete(str_replace('storage/', 'public/', $elemento->imagen_elemento));
+
+            $elemento = Elementos::findOrFail($id);
+
+            if ($request->hasFile('imagen_elemento')) {
+                if ($elemento->imagen_elemento !== 'storage/img/defaultPerfil.png') {
+                    Storage::delete(str_replace('storage/', 'public/', $elemento->imagen_elemento));
+                }
+
+                $archivo = $request->file('imagen_elemento');
+                $nombreImagen = Str::random(20) . '.' . $archivo->getClientOriginalExtension();
+                $archivo->storeAs('public/img', $nombreImagen);
+                $data['imagen_elemento'] = 'storage/img/' . $nombreImagen;
             }
 
-            $archivo = $request->file('imagen_elemento');
-            $nombreImagen = Str::random(20) . '.' . $archivo->getClientOriginalExtension();
-            $archivo->storeAs('public/img', $nombreImagen);
-            $data['imagen_elemento'] = 'storage/img/' . $nombreImagen;
-        }
+            if (empty($data)) {
+                return response()->json(['message' => 'No hay datos para actualizar'], 400);
+            }
 
-        $elemento->update($data);
+            $elemento->update($data);
+            $elemento->refresh();
 
+            return response()->json([
+                'message' => 'Elemento actualizado correctamente.',
+                'antes' => $elemento->getOriginal(),
+                'despues' => $elemento->toArray(),
+            ]);
+        });
+    } catch (\Exception $e) {
         return response()->json([
-            'message' => 'Elemento actualizado correctamente.',
-            'data' => $elemento,
-        ]);
-    });
+            'error' => 'Error al actualizar elemento',
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ], 500);
+    }
 }
+
 
 
     /**
@@ -118,7 +134,8 @@ public function update(UpdateElementoRequest $request, $id)
         $elemento = Elementos::find($id);
 
         if (!$elemento || $elemento->estado === false) {
-            return response()->json(['message' => 'elemento no encontrada o ya inactiva'], 404);
+            $elemento->update(['estado' => true]);
+            return response()->json(['message' => 'elemento activado con exito'], 200);
         }
 
         $elemento->update(['estado' => false]);

@@ -3,7 +3,7 @@
 use App\Http\Controllers\CodigoInventarioController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('tipos',[CodigoInventarioController::class, 'index']);
-Route::get('tipos/{id_tipo}',[CodigoInventarioController::class, 'show']);
-Route::post('tipos',[CodigoInventarioController::class, 'store']);
-Route::patch('tipos/{id_tipo}',[CodigoInventarioController::class, 'update']);
+Route::get('codigos',[CodigoInventarioController::class, 'index']);
+Route::get('codigos/{id_codigo_inventario}',[CodigoInventarioController::class, 'show']);
+Route::post('codigos',[CodigoInventarioController::class, 'store']);
+Route::patch('codigos/{id_codigo_inventario}',[CodigoInventarioController::class, 'update']);

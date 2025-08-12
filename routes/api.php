@@ -13,6 +13,7 @@ require __DIR__ ."/tables/codigos.php";
 require __DIR__ ."/tables/roles.php";
 require __DIR__ ."/tables/elementos.php";
 require __DIR__ ."/tables/inventario.php";
+require __DIR__ ."/tables/movimientos.php";
 
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\IsAdmin;

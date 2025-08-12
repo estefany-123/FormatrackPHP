@@ -51,7 +51,7 @@ class Movimientos extends Model
 
     public function tipoMovimiento()
     {
-        return $this->belongsTo(TiposMovimiento::class, 'fk_tipo_movimiento');
+        return $this->belongsTo(TiposMovimientos::class, 'fk_tipo_movimiento');
     }
 
     public function usuario()

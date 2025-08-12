@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Roles\StoreRolRequest;
+use App\Http\Requests\Roles\UpdateRolRequest;
 use App\Models\Roles;
-use App\Http\Requests\StoreRolRequest;
-use App\Http\Requests\UpdateRolRequest;
 
 class RolesController extends Controller
 {
@@ -48,7 +48,8 @@ class RolesController extends Controller
         $rol = Roles::find($id);
 
         if (!$rol || $rol->estado === false) {
-            return response()->json(['message' => 'Rol no encontrado o ya inactivo'], 404);
+            $rol->update(['estado' => true]);
+            return response()->json(['message' => 'Rol activado correctamente'], 200);
         }
 
         $rol->update(['estado' => false]);
