@@ -81,4 +81,19 @@ class SitiosController extends Controller
 
         return response()->json(['message' => 'sitio desactivada correctamente'], 200);
     }
+
+
+
+        public function updateState($id)
+    {
+        $sitio = Sitios::find($id);
+
+        if (!$sitio) {
+            return response()->json(['message' => 'sitio no encontrado'], 404);
+        }
+
+        $sitio->update(['estado' => !$sitio->estado]);
+
+        return response()->json($sitio, 200);
+    }
 }

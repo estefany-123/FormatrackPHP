@@ -4,7 +4,8 @@ use App\Http\Controllers\AreasController;
 use Illuminate\Support\Facades\Route;
 
 
-Route::post('/Areas', [AreasController::class, 'store'])->name('Areas.store');
-Route::get('/Areas', [AreasController::class, 'show'])->name('Areas.show');
-Route::put('/Areas', [AreasController::class, 'update'])->name('Areas.update');
-Route::delete('/Areas', [AreasController::class, 'destroy'])->name('Areas.destroy');
+Route::post('/areas', [AreasController::class, 'store']);
+Route::get('/areas', [AreasController::class, 'index']);
+Route::get('/areas/{id_area}', [AreasController::class, 'show']);
+Route::patch('/areas/{id_area}', [AreasController::class, 'update']);
+Route::patch('areas/state/{id_area}', [AreasController::class, 'updateState']);

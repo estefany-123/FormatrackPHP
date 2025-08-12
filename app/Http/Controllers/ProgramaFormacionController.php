@@ -57,4 +57,17 @@ class ProgramaFormacionController extends Controller
 
         return response()->json(['message' => 'Programa desactivado correctamente'], 200);
     }
+
+    public function updateState($id)
+    {
+        $programa = ProgramaFormacion::find($id);
+
+        if (!$programa) {
+            return response()->json(['message' => 'programa no encontrado'], 404);
+        }
+
+        $programa->update(['estado' => !$programa->estado]);
+
+        return response()->json($programa, 200);
+    }
 }

@@ -94,4 +94,16 @@ class AreasController extends Controller
         // Retorna mensaje de confirmación
         return response()->json(['message' => 'Área desactivada correctamente'], 200);
     }
+    public function updateState($id)
+    {
+        $area = areas::find($id);
+
+        if (!$area) {
+            return response()->json(['message' => 'area no encontrado'], 404);
+        }
+
+        $area->update(['estado' => !$area->estado]);
+
+        return response()->json($area, 200);
+    }
 }

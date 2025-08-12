@@ -53,15 +53,14 @@ class RegisterRequest extends FormRequest
                 'max:255',
                 'unique:users,correo',
             ],
-             'estado' => [
+            'estado' => [
                 'required',
-                'string'
+                'boolean'
             ],
             'cargo' => [
                 'required',
                 'string',
-                'max:50',
-                'regex:/^[\pL\s\-]+$/u'
+                'max:50'
             ],
             'password' => [
                 'required',
@@ -108,7 +107,7 @@ class RegisterRequest extends FormRequest
             'correo.unique'        =>      'El correo ya esta registrado en la BD',
 
             'estado.required'       =>      'El estado es obligatorio',
-            'estado.string'         =>      'El estado debe ser un boolean',
+            'estado.boolean'         =>      'El estado debe ser un boolean',
 
             'cargo.required'       =>      'El cargo es obligatorio',
             'cargo.string'         =>      'El cargo debe ser una cadena de texto',
@@ -124,7 +123,7 @@ class RegisterRequest extends FormRequest
             'perfil.max'            =>      'El perfil no puede exceder los 2048 caracteres',
 
             'fk_rol.required'       =>      'El rol es obligatorio',
-            'fk_rol.in'             =>      'El rol debe ser "1" o "2" o "3"',
+            'fk_rol.in'             =>      'El rol debe existir en la base de datos',
 
         ];
     }

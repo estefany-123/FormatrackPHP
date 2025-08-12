@@ -57,4 +57,19 @@ class SedesController extends Controller
 
         return response()->json(['message' => 'Sede desactivada correctamente'], 200);
     }
+
+
+
+    public function updateState($id)
+    {
+        $sede = sedes::find($id);
+
+        if (!$sede) {
+            return response()->json(['message' => 'sede no encontrado'], 404);
+        }
+
+        $sede->update(['estado' => !$sede->estado]);
+
+        return response()->json($sede, 200);
+    }
 }

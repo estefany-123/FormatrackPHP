@@ -57,4 +57,17 @@ class FichasController extends Controller
 
         return response()->json(['message' => 'Ficha desactivada correctamente'], 200);
     }
+
+    public function updateState($id)
+    {
+        $ficha = fichas::find($id);
+
+        if (!$ficha) {
+            return response()->json(['message' => 'ficha no encontrado'], 404);
+        }
+
+        $ficha->update(['estado' => !$ficha->estado]);
+
+        return response()->json($ficha, 200);
+    }
 }

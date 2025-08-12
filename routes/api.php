@@ -14,6 +14,14 @@ require __DIR__ ."/tables/roles.php";
 require __DIR__ ."/tables/elementos.php";
 require __DIR__ ."/tables/inventario.php";
 require __DIR__ ."/tables/movimientos.php";
+require __DIR__ . "/tables/areas.php";
+require __DIR__ . "/tables/programas.php";
+require __DIR__ . "/tables/fichas.php";
+require __DIR__ . "/tables/sedes.php";
+require __DIR__ . "/tables/sitios.php";
+require __DIR__ . "/tables/rolPermiso.php";
+
+
 
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\IsAdmin;
@@ -30,8 +38,6 @@ Route::post('/login', [AuthController::class, 'login'])->name('auth.login');
 Route::middleware(IsAdmin::class)->group(function () {
     Route::get('user', [AuthController::class, 'getUser'])->name('auth.getUser');
     Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
-
-
 });
 
 

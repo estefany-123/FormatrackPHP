@@ -44,6 +44,7 @@ class PermisosController extends Controller
 
         // Si no existe o está inactiva, retorna error 404
         if (!$permiso || $permiso->estado === false) {
+            return response()->json(['message' => 'permiso no encontrada o inactiva'], 404);
         }
 
         // Retorna el área encontrada en formato JSON
@@ -71,14 +72,14 @@ class PermisosController extends Controller
 
     public function destroy($id)
     {
-        $sitio = Permisos::find($id);
+        $permiso = Permisos::find($id);
 
-        if (!$sitio || $sitio->estado === false) {
-            return response()->json(['message' => 'sitio no encontrada o ya inactiva'], 404);
+        if (!$permiso || $permiso->estado === false) {
+            return response()->json(['message' => 'permiso no encontrada o ya inactiva'], 404);
         }
 
-        $sitio->update(['estado' => false]);
+        $permiso->update(['estado' => false]);
 
-        return response()->json(['message' => 'sitio desactivada correctamente'], 200);
+        return response()->json(['message' => 'permiso desactivada correctamente'], 200);
     }
 }

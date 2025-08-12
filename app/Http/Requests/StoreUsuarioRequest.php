@@ -19,7 +19,7 @@ class StoreUsuarioRequest extends FormRequest
             'apellido' => ['nullable', 'string', 'max:70'],
             'edad' => ['nullable', 'integer', 'min:0'],
             'telefono' => ['nullable', 'string', 'max:15'],
-            'correo' => ['nullable', 'email', 'max:70'],
+            'correo' => 'nullable|email|unique:users,correo',
             'estado' => ['nullable', 'boolean'],
             'cargo' => ['nullable', 'string', 'max:70'],
             'password' => ['nullable', 'string', 'min:6'],
