@@ -18,6 +18,7 @@ use App\Http\Controllers\EmailController;
 
 Route::post('/forgot-password',[EmailController::class,'sendResetLink']);
 Route::post('/reset-password',[EmailController::class,'reset']);
+    Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
 
 
 Route::post('/usuarios', [AuthController::class, 'register'])->name('auth.register');
@@ -27,7 +28,7 @@ Route::apiResource('roles', RolesController::class);
 //priveate route
 Route::middleware(IsAdmin::class)->group(function(){
     Route::get('user', [AuthController::class, 'getUser'])->name('auth.getUser');
-    Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
+
 
     //Acciones que puede realizar
 
@@ -41,7 +42,6 @@ Route::middleware(IsAdmin::class)->group(function(){
 //rutas privadas Usuario
 Route::middleware(IsUserAuth::class)->group(function(){
     Route::get('user', [AuthController::class, 'getUser'])->name('auth.getUser');
-    Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
     
     //Acciones que puede realizar
     Route::get('/elementos', [ElementoController::class, 'show'])->name('elemento.show');
