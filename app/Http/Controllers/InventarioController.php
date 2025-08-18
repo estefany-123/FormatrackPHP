@@ -19,11 +19,11 @@ class InventarioController extends Controller
         $this->notificacionesService = $notificacionesService;
     }
 
-    public function index()
-    {
-        $inventarios = Inventario::all();
-        return response()->json($inventarios, 200);
-    }
+public function index()
+{
+    $inventarios = Inventario::with(['elemento', 'sitio'])->get();
+    return response()->json($inventarios, 200);
+}
 
     public function show($id)
     {
