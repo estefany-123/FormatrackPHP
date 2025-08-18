@@ -31,8 +31,9 @@ class MovimientosController extends Controller
         $movimientos = Movimientos::with([
             'inventario.elemento.caracteristica',
             'sitio',
-            'tiposMovimientos',
-            'usuario.rol'
+            'tipoMovimiento',
+            'usuario.rol',
+            'inventario.codigos'
         ])->get();
 
         return response()->json($movimientos);

@@ -26,10 +26,10 @@ class StoreElementoRequest extends FormRequest
                 'max:1000',
                 'min:5'
             ],
-            'perecedero' => [ 'boolean'],
-            'no_perecedero' => [ 'boolean'],
-            'estado' => [ 'boolean'],
-            'baja' => [ 'boolean'],
+            'estado' => 'required|in:0,1,true,false',
+            'no_perecedero' => 'required|in:0,1,true,false',
+            'perecedero' => 'required|in:0,1,true,false',
+            'baja' => 'required|in:0,1,true,false, nullable',
             'imagen_elemento' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
             'fk_categoria' => ['required', 'integer', 'exists:categorias,id_categoria'],
             'fk_unidad_medida' => ['required', 'integer', 'exists:unidades_medida,id_unidad'],
@@ -59,7 +59,6 @@ class StoreElementoRequest extends FormRequest
             'estado.required' => 'El campo estado es obligatorio',
             'estado.boolean' => 'El campo estado debe ser verdadero o falso',
 
-            'baja.required' => 'El campo baja es obligatorio',
             'baja.boolean' => 'El campo baja debe ser verdadero o falso',
 
             'imagen_elemento.string' => 'La imagen debe ser una cadena de texto',
