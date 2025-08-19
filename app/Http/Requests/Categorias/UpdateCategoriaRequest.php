@@ -14,7 +14,8 @@ class UpdateCategoriaRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nombre' => [ 'string', 'max:70']
+            'nombre' => [ 'string', 'max:70'],
+            'codigo_unpsc' => ['sometimes', 'string'],
         ];
     }
 
@@ -23,6 +24,8 @@ class UpdateCategoriaRequest extends FormRequest
         return [
             'nombre.string' => 'El nombre debe ser una cadena de texto',
             'nombre.max' => 'El nombre no debe superar los 70 caracteres',
+
+            'codigo_unpsc.string' => 'El código UNSPSC debe ser texto',
         ];
     }
 }

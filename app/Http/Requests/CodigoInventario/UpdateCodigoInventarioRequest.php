@@ -21,9 +21,6 @@ class UpdateCodigoInventarioRequest extends FormRequest
     {
         return [
             'codigo' => 'required|string|max:255',
-            'uso' => 'required|boolean',
-            'baja' => 'required|boolean',
-            'fk_inventario' => 'required|exists:inventarios,id_inventario',
         ];
     }
 

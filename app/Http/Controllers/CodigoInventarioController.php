@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCodigoInventarioRequest;
-use App\Http\Requests\UpdateCodigoInventarioRequest;
+use App\Http\Requests\CodigoInventario\StoreCodigoInventarioRequest;
+use App\Http\Requests\CodigoInventario\UpdateCodigoInventarioRequest;
 use App\Models\CodigoInventario;
 use Illuminate\Http\Request;
 
