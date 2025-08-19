@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSitioRequest;
 use App\Http\Requests\UpdateSitioRequest;
+use App\Models\Elementos;
+use App\Models\Inventario;
 use App\Models\Sitios;
 use Illuminate\Http\Request;
 
@@ -25,12 +27,31 @@ class SitiosController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreSitioRequest $request)
+ public function store(StoreSitioRequest $request)
     {
-        // Crea una nueva área usando solo los datos validados por StoreAreaRequest
-        $sitio = Sitios::create($request->validated());
+        // Crear el sitio con los datos validados
+        $sitio = Sitios::create([
+            ...$request->validated(),
+            'fk_area' => $request->fk_area,
+            'fk_tipo_sitio' => $request->fk_tipo_sitio,
+        ]);
 
-        // Retorna la nueva área creada y el código HTTP 201 (creado)
+        // Obtener todos los elementos
+        $elementos = Elementos::all();
+
+        // Crear asignaciones de inventario para cada elemento
+        $asignaciones = $elementos->map(function ($elemento) use ($sitio) {
+            return [
+                'fk_sitio' => $sitio->id_sitio,
+                'fk_elemento' => $elemento->id_elemento,
+                'stock' => 0,
+                'estado' => false,
+            ];
+        })->toArray();
+
+        // Guardar las asignaciones en la tabla de inventario
+        Inventario::insert($asignaciones);
+
         return response()->json($sitio, 201);
     }
 
