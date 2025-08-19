@@ -19,11 +19,11 @@ class InventarioController extends Controller
         $this->notificacionesService = $notificacionesService;
     }
 
-public function index()
-{
-    $inventarios = Inventario::with(['elemento', 'sitio'])->get();
-    return response()->json($inventarios, 200);
-}
+    public function index()
+    {
+        $inventarios = Inventario::with(['elemento','elemento.caracteristica', 'sitio', 'codigos'])->get();
+        return response()->json($inventarios, 200);
+    }
 
     public function show($id)
     {
@@ -51,8 +51,8 @@ public function index()
     public function agregarStock(Request $request)
     {
         $data = $request->validate([
-            'fk_elemento' => 'required|integer',
-            'fk_sitio' => 'required|integer',
+            'fk_elemento' => 'required|integer|exists:elementos,id_elemento',
+            'fk_sitio' => 'required|integer|exists:sitios,id_sitio',
             'stock' => 'sometimes|integer|min:1',
             'codigos' => 'sometimes|array',
             'codigos.*' => 'string',

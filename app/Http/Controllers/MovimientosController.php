@@ -40,7 +40,7 @@ class MovimientosController extends Controller
     }
 
     // Crear movimiento
-   public function store(StoreMovimientoRequest $request): JsonResponse
+public function store(StoreMovimientoRequest $request): JsonResponse
 {
     $data = $request->validated();
     $idUsuario = $request->user()?->id;
@@ -53,99 +53,89 @@ class MovimientosController extends Controller
 
     try {
         $inventario = Inventario::with('elemento.caracteristica', 'sitio')->findOrFail($data['fk_inventario']);
-        $tiposMovimientos = TiposMovimientos::findOrFail($data['fk_tipo_movimiento']);
+        $tipoMovimiento = TiposMovimientos::findOrFail($data['fk_tipo_movimiento']);
         $usuario = User::with('rol')->findOrFail($idUsuario);
 
         $tieneCaracteristicas = $inventario->elemento && !is_null($inventario->elemento->caracteristica);
-        $nombreTipo = strtolower($tiposMovimientos->nombre);
+        $nombreTipo = strtolower($tipoMovimiento->nombre);
         $codigos = $data['codigos'] ?? [];
+        $cantidad = $data['cantidad'] ?? 0;
 
+        // --- Lógica para movimientos con características ---
         if ($tieneCaracteristicas) {
-            switch ($nombreTipo) {
-                case 'salida':
-                case 'baja':
-                case 'prestamo':
-                    if (empty($codigos)) {
-                        throw ValidationException::withMessages(['codigos' => 'Debe especificar códigos para este movimiento']);
-                    }
+            if (in_array($nombreTipo, ['salida', 'baja', 'prestamo'])) {
+                if (empty($codigos)) {
+                    throw ValidationException::withMessages(['codigos' => 'Debe especificar códigos para este movimiento']);
+                }
 
-                    // Códigos que están en inventario y NO usados (disponibles)
-                    $codigosDisponibles = CodigoInventario::where('fk_inventario', $inventario->id)
-                        ->where('uso', false)
-                        ->pluck('codigo')
-                        ->toArray();
+                $codigosDisponibles = CodigoInventario::where('fk_inventario', $inventario->id_inventario)
+                    ->where('uso', false)
+                    ->pluck('codigo')
+                    ->toArray();
 
-                    $faltantes = array_diff($codigos, $codigosDisponibles);
+                $faltantes = array_diff($codigos, $codigosDisponibles);
+                if (!empty($faltantes)) {
+                    throw ValidationException::withMessages(['codigos' => 'Estos códigos no están disponibles: ' . implode(', ', $faltantes)]);
+                }
 
-                    if (!empty($faltantes)) {
-                        throw ValidationException::withMessages(['codigos' => 'Estos códigos no están disponibles: ' . implode(', ', $faltantes)]);
-                    }
+                CodigoInventario::where('fk_inventario', $inventario->id_inventario)
+                    ->whereIn('codigo', $codigos)
+                    ->update(['uso' => true]);
 
-                    CodigoInventario::where('fk_inventario', $inventario->id)
-                        ->whereIn('codigo', $codigos)
-                        ->update(['uso' => true]);
+                $inventario->stock -= count($codigos);
 
-                    $inventario->stock -= count($codigos);
-                    break;
+            } elseif ($nombreTipo === 'ingreso') {
+                if (empty($codigos)) {
+                    throw ValidationException::withMessages(['codigos' => 'Debe especificar códigos para este movimiento']);
+                }
 
-                case 'ingreso':
-                    if (empty($codigos)) {
-                        throw ValidationException::withMessages(['codigos' => 'Debe especificar códigos para este movimiento']);
-                    }
+                $codigosExistentes = CodigoInventario::where('fk_inventario', $inventario->id_inventario)
+                    ->whereIn('codigo', $codigos)
+                    ->pluck('codigo')
+                    ->toArray();
 
-                    // Verificar que los códigos no existan aún en inventario
-                    $codigosExistentes = CodigoInventario::where('fk_inventario', $inventario->id)
-                        ->whereIn('codigo', $codigos)
-                        ->pluck('codigo')
-                        ->toArray();
+                if (!empty($codigosExistentes)) {
+                    throw ValidationException::withMessages([
+                        'codigos' => 'Los siguientes códigos ya existen en el inventario: ' . implode(', ', $codigosExistentes)
+                    ]);
+                }
 
-                    if (!empty($codigosExistentes)) {
-                        throw ValidationException::withMessages(['codigos' => 'Los siguientes códigos ya existen en el inventario: ' . implode(', ', $codigosExistentes)]);
-                    }
+                foreach ($codigos as $codigo) {
+                    CodigoInventario::create([
+                        'codigo' => $codigo,
+                        'fk_inventario' => $inventario->id_inventario,
+                        'uso' => false,
+                    ]);
+                }
 
-                    foreach ($codigos as $codigo) {
-                        CodigoInventario::create([
-                            'codigo' => $codigo,
-                            'fk_inventario' => $inventario->id_inventario,
-                            'uso' => false,
-                        ]);
-                    }
+                $inventario->stock += count($codigos);
 
-                    $inventario->stock += count($codigos);
-                    break;
+            } elseif ($nombreTipo === 'devolucion') {
+                if (empty($codigos)) {
+                    throw ValidationException::withMessages(['codigos' => 'Debe especificar códigos para devolver']);
+                }
 
-                case 'devolucion':
-                    if (empty($codigos)) {
-                        throw ValidationException::withMessages(['codigos' => 'Debe especificar códigos para devolver']);
-                    }
+                $codigosEnUso = CodigoInventario::where('fk_inventario', $inventario->id_inventario)
+                    ->where('uso', true)
+                    ->pluck('codigo')
+                    ->toArray();
 
-                    // Códigos que están en uso (prestados)
-                    $codigosEnUso = CodigoInventario::where('fk_inventario', $inventario->id)
-                        ->where('uso', true)
-                        ->pluck('codigo')
-                        ->toArray();
+                $noPrestados = array_diff($codigos, $codigosEnUso);
+                if (!empty($noPrestados)) {
+                    throw ValidationException::withMessages([
+                        'codigos' => 'Estos códigos no están en préstamo: ' . implode(', ', $noPrestados)
+                    ]);
+                }
 
-                    $noPrestados = array_diff($codigos, $codigosEnUso);
+                CodigoInventario::where('fk_inventario', $inventario->id_inventario)
+                    ->whereIn('codigo', $codigos)
+                    ->update(['uso' => false]);
 
-                    if (!empty($noPrestados)) {
-                        throw ValidationException::withMessages(['codigos' => 'Estos códigos no están en préstamo: ' . implode(', ', $noPrestados)]);
-                    }
-
-                    CodigoInventario::where('fk_inventario', $inventario->id)
-                        ->whereIn('codigo', $codigos)
-                        ->update(['uso' => false]);
-
-                    $inventario->stock += count($codigos);
-                    break;
-
-                default:
-                    // Otros tipos de movimientos con características no necesitan códigos obligatorios
-                    break;
+                $inventario->stock += count($codigos);
             }
-        } else {
-            // No tiene características, trabajar solo con cantidad
-            $cantidad = $data['cantidad'] ?? 0;
 
+        // --- Lógica para movimientos sin características ---
+        } else {
             if (in_array($nombreTipo, ['salida', 'baja', 'prestamo'])) {
                 if ($cantidad <= 0) {
                     throw ValidationException::withMessages(['cantidad' => 'Debe indicar cantidad válida']);
@@ -153,13 +143,12 @@ class MovimientosController extends Controller
                 if ($cantidad > $inventario->stock) {
                     throw ValidationException::withMessages(['cantidad' => 'No hay suficiente stock']);
                 }
-
                 $inventario->stock -= $cantidad;
+
             } elseif (in_array($nombreTipo, ['ingreso', 'devolucion'])) {
                 if ($cantidad <= 0) {
                     throw ValidationException::withMessages(['cantidad' => 'Debe indicar cantidad válida']);
                 }
-
                 $inventario->stock += $cantidad;
             }
         }
@@ -170,13 +159,13 @@ class MovimientosController extends Controller
 
         $movimiento = Movimientos::create([
             'fk_inventario' => $inventario->id_inventario,
-            'fk_tipo_movimiento' => $tiposMovimientos->id_tipo,
-            'cantidad' => $data['cantidad'] ?? count($codigos),
+            'fk_tipo_movimiento' => $tipoMovimiento->id_tipo,
+            'cantidad' => $tieneCaracteristicas ? count($codigos) : $cantidad,
             'descripcion' => $data['descripcion'] ?? null,
             'fk_usuario' => $idUsuario,
             'fk_sitio' => $data['fk_sitio'],
-            'en_proceso' => $esIngreso ? false : true,
-            'aceptado' => $esIngreso ? true : false,
+            'en_proceso' => !$esIngreso,
+            'aceptado' => $esIngreso,
             'cancelado' => false,
             'hora_ingreso' => $data['hora_ingreso'] ?? null,
             'hora_salida' => $data['hora_salida'] ?? null,
@@ -187,17 +176,18 @@ class MovimientosController extends Controller
         ]);
 
         $movimiento->load(['tipoMovimiento', 'usuario', 'inventario.elemento', 'sitio']);
-        // Notificaciones
+
+        // --- Notificaciones ---
         $this->notificacionesService->notificarMovimientoPendiente([
             'idMovimiento' => $movimiento->id,
-            'tipo' => $tiposMovimientos,
+            'tipo' => $tipoMovimiento,
             'usuario' => $usuario,
             'sitio' => ['id' => $data['fk_sitio'], 'nombre' => $inventario->sitio->nombre ?? 'Sitio'],
         ]);
 
         $this->notificacionesService->notificarIngreso([
             'id' => $movimiento->id,
-            'tipo' => $tiposMovimientos,
+            'tipo' => $tipoMovimiento,
             'cantidad' => $movimiento->cantidad,
             'elemento' => $inventario->elemento,
             'usuario' => $usuario,
@@ -215,6 +205,7 @@ class MovimientosController extends Controller
         DB::commit();
 
         return response()->json($movimiento, Response::HTTP_CREATED);
+
     } catch (\Exception $e) {
         DB::rollBack();
         return response()->json([
@@ -223,6 +214,7 @@ class MovimientosController extends Controller
         ], Response::HTTP_BAD_REQUEST);
     }
 }
+
 
 
     // Mostrar un movimiento
