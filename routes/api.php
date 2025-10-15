@@ -8,21 +8,6 @@ require __DIR__ ."/tables/modulos.php";
 require __DIR__ ."/tables/rutas.php";
 require __DIR__ ."/tables/caracteristicas.php";
 require __DIR__ ."/tables/rolPermiso.php";
-require __DIR__ ."/tables/tipoMovimiento.php";
-require __DIR__ ."/tables/unidadesMedida.php";
-require __DIR__ ."/tables/codigos.php";
-require __DIR__ ."/tables/roles.php";
-require __DIR__ ."/tables/elementos.php";
-require __DIR__ ."/tables/inventario.php";
-require __DIR__ ."/tables/movimientos.php";
-require __DIR__ . "/tables/areas.php";
-require __DIR__ . "/tables/programas.php";
-require __DIR__ . "/tables/fichas.php";
-require __DIR__ . "/tables/sedes.php";
-require __DIR__ . "/tables/sitios.php";
-// require __DIR__ . "/tables/notificaciones.php";
-
-
 
 use App\Http\Controllers\AuthController;
 use App\Http\Middleware\IsAdmin;
