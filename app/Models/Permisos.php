@@ -19,11 +19,7 @@ class Permisos extends Model
 
     public function ruta()
     {
-        return $this->belongsTo(Ruta::class, 'fk_ruta');
+        return $this->belongsTo(Rutas::class, 'fk_ruta');
     }
 
-    public function rolPermisos()
-    {
-        return $this->hasMany(RolPermiso::class, 'fk_permiso');
-    }
 }

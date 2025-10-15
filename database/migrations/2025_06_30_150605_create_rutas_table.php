@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id('id_ruta');
             $table->string('nombre', 205)->nullable();
             $table->string('href', 205);
-            $table->string('icono', 205);
+            $table->string('icono', 205)->nullable();
             $table->boolean('listed');
             $table->boolean('estado');
             $table->timestamps();

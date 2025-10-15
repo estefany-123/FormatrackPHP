@@ -175,33 +175,6 @@ public function store(StoreMovimientoRequest $request): JsonResponse
             'lugar_destino' => $data['lugar_destino'] ?? null,
         ]);
 
-        $movimiento->load(['tipoMovimiento', 'usuario', 'inventario.elemento', 'sitio']);
-
-        // --- Notificaciones ---
-        $this->notificacionesService->notificarMovimientoPendiente([
-            'idMovimiento' => $movimiento->id,
-            'tipo' => $tipoMovimiento,
-            'usuario' => $usuario,
-            'sitio' => ['id' => $data['fk_sitio'], 'nombre' => $inventario->sitio->nombre ?? 'Sitio'],
-        ]);
-
-        $this->notificacionesService->notificarIngreso([
-            'id' => $movimiento->id,
-            'tipo' => $tipoMovimiento,
-            'cantidad' => $movimiento->cantidad,
-            'elemento' => $inventario->elemento,
-            'usuario' => $usuario,
-            'sitio' => ['id' => $data['fk_sitio'], 'nombre' => $inventario->sitio->nombre ?? 'Sitio'],
-        ]);
-
-        if ($nombreTipo === 'prestamo') {
-            $this->notificacionesService->notificarPrestamoConDevolucion([
-                'movimiento' => $movimiento,
-                'usuario' => $usuario,
-                'elemento' => $inventario->elemento,
-            ]);
-        }
-
         DB::commit();
 
         return response()->json($movimiento, Response::HTTP_CREATED);

@@ -44,7 +44,7 @@ class ElementoController extends Controller
                     $archivo->move(public_path('img'), $nombreImagen); // directamente en public/img
                     $data['imagen_elemento'] = 'img/' . $nombreImagen;
                 } else {
-                    $data['imagen_elemento'] = 'storage/img/defaultPerfil.png';
+                    $data['imagen_elemento'] = 'img/defaultPerfil.png';
                 }
 
                 $elemento = Elementos::create($data);
@@ -94,51 +94,52 @@ class ElementoController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateElementoRequest $request, $id)
-    {
-        try {
-            return DB::transaction(function () use ($request, $id) {
-                $data = $request->validated();
-                $elemento = Elementos::findOrFail($id);
+   public function update(UpdateElementoRequest $request, $id)
+{
+    try {
+        return DB::transaction(function () use ($request, $id) {
+            $data = $request->validated();
+            $elemento = Elementos::findOrFail($id);
 
-                // ✅ Manejo de la imagen
-                if ($request->hasFile('imagen_elemento')) {
-                    if ($elemento->imagen_elemento && $elemento->imagen_elemento !== 'storage/img/defaultPerfil.png') {
-                        Storage::delete(str_replace('storage/', 'public/', $elemento->imagen_elemento));
-                    }
-
-                    $archivo = $request->file('imagen_elemento');
-                    $nombreImagen = Str::random(20) . '.' . $archivo->getClientOriginalExtension();
-                    $archivo->storeAs('public/img', $nombreImagen);
-                    $data['imagen_elemento'] = 'storage/img/' . $nombreImagen;
+            // ✅ Manejo de la imagen
+            if ($request->hasFile('imagen_elemento')) {
+                if ($elemento->imagen_elemento && $elemento->imagen_elemento !== 'img/defaultPerfil.png') {
+                    Storage::delete('public/' . $elemento->imagen_elemento);
                 }
 
-                // ✅ Verificar cambios reales
-                $cambios = array_diff_assoc($data, $elemento->getAttributes());
+                $archivo = $request->file('imagen_elemento');
+                $nombreImagen = Str::random(20) . '.' . $archivo->getClientOriginalExtension();
+                $archivo->storeAs('public/img', $nombreImagen);
+                $data['imagen_elemento'] = 'img/' . $nombreImagen;
+            }
 
-                if (empty($cambios)) {
-                    return response()->json([
-                        'message' => 'No se detectaron cambios en el elemento'
-                    ], 200);
-                }
+            // ✅ Asignar datos al modelo
+            $elemento->fill($data);
 
-                $elemento->update($data);
-                $elemento->refresh();
-
+            // ✅ Verificar cambios reales
+            if (!$elemento->isDirty()) {
                 return response()->json([
-                    'message' => 'Elemento actualizado correctamente.',
-                    'cambios' => $cambios,
-                    'elemento' => $elemento,
-                ]);
-            });
-        } catch (\Exception $e) {
+                    'message' => 'No se detectaron cambios en el elemento'
+                ], 200);
+            }
+
+            // ✅ Guardar cambios
+            $elemento->save();
+            $elemento->refresh();
+
             return response()->json([
-                'error' => 'Error al actualizar elemento',
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-            ], 500);
-        }
+                'message' => 'Elemento actualizado correctamente.',
+                'elemento' => $elemento,
+            ]);
+        });
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Error al actualizar elemento',
+            'message' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ], 500);
     }
+}
 
 
     /**

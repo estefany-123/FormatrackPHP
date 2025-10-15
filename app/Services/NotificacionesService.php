@@ -91,9 +91,9 @@ class NotificacionesService
     {
         $notificacion = $this->findOne($id);
 
-        if (isset($data['fkUsuario'])) {
-            $data['fk_usuario'] = $data['fkUsuario'];
-            unset($data['fkUsuario']);
+        if (isset($data['fk_usuario'])) {
+            $data['fk_usuario'] = $data['fk_usuario'];
+            unset($data['fk_usuario']);
         }
 
         $notificacion->update($data);
@@ -265,7 +265,7 @@ class NotificacionesService
             $mensaje,
             false,
             $admin,
-            ['idElemento' => $inventario->elemento->id_elemento]
+            ['id_elemento' => $inventario->elemento->id_elemento]
         );
     }
 }
@@ -324,7 +324,7 @@ class NotificacionesService
             $mensaje,
             false,
             $movimiento->usuario,
-            ['idMovimiento' => $movimiento->id]
+            ['id_movimiento' => $movimiento->id]
         );
     }
 
@@ -349,7 +349,7 @@ class NotificacionesService
             false,
             $movimiento->usuario,
             [
-                'idMovimiento' => $movimiento->id,
+                'id_movimiento' => $movimiento->id,
                 'fechaDevolucion' => $movimiento->fecha_devolucion,
             ]
         );

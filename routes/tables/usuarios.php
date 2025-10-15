@@ -2,8 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsersController;
-
-
+use App\Http\Controllers\UsuarioPermisoController;
 
 Route::get('/usuarios/perfil', [UsersController::class, 'perfilInfo']);
 
@@ -20,3 +19,5 @@ Route::put('/usuarios/update/{id}',[UsersController::class,'update']);
 Route::patch('/usuarios/estado/{id}',[UsersController::class,'updateState']);
 
 Route::post('/usuarios/massive',[UsersController::class,'massiveUpload']);
+
+Route::get('/permisos/refetch', [UsuarioPermisoController::class, 'refetch']);

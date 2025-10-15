@@ -23,6 +23,6 @@ class Modulos extends Model
 
     public function rutas()
     {
-        return $this->hasMany(Ruta::class, 'fk_modulo');
+        return $this->hasMany(Rutas::class, 'fk_modulo');
     }
 }

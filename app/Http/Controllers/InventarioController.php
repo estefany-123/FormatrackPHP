@@ -101,12 +101,6 @@ class InventarioController extends Controller
             $inventario->increment('stock', $data['stock']);
         }
 
-        $this->notificacionesService->notificarStockBajo($inventario);
-
-        if ($inventario->elemento->perecedero && $inventario->elemento->fecha_vencimiento) {
-            $this->notificacionesService->notificarProximaCaducidad($inventario);
-        }
-
         return response()->json(['message' => 'Stock actualizado correctamente']);
     }
 
@@ -136,8 +130,6 @@ class InventarioController extends Controller
         }
 
         $inventario->increment('stock', $data['stock']);
-
-        $this->notificacionesService->notificarStockBajo($inventario);
 
         return response()->json($inventario);
     }
